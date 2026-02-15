@@ -1,36 +1,3 @@
-monoloc_system/                 # [根项目目录]
-├── backend/                    # [后端] 你现有的 Python 项目
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── schemas.py          # Pydantic 模型
-│   ├── config/
-│   ├── data/
-│   │   ├── images/
-│   │   └── output/
-│   ├── models/
-│   │   └── Detectino/
-│   │       └── yolov8n.pt
-│   ├── src/
-│   │   ├── __init__.py
-│   │   ├── detector.py
-│   │   ├── geolocalizer.py
-│   │   ├── visualizer.py
-│   │   └── utils.py            # [已移动] 原 api/utils.py
-│   ├── infer_loc.py            # 模型效果验证
-│   ├── main.py                 # FastAPI 入口
-│   └── requirements.txt
-│
-└── frontend/                   # [前端] Vue 3 + Vite 项目
-    ├── public/
-    ├── src/
-    │   ├── assets/
-    │   ├── components/
-    │   ├── App.vue             # [核心] 主页面逻辑
-    │   └── main.js             # 入口文件
-    ├── index.html
-    ├── package.json
-    └── vite.config.js
-
 # 1. Run
 
 ```shell
@@ -41,12 +8,14 @@ cd backend
 python main.py
 
 ## （2）前端（端口5173，vue通用接口）
-## 环境配置参见 frentend/RUN-vue.md
+## 环境配置参见 frontend/RUN-vue.md
 cd frontend
 npm run dev
 ```
 
 # 2. api
+
+## 2.1. request
 
 ```json
 // 请求参数 (Request Body Example):
@@ -109,8 +78,11 @@ npm run dev
         },
     ] // list，多个targets.item
 }
+```
 
+## 2.2. response
 
+```shell
 // 返回数据 (Response Body Example):
 {
     "code": 200,

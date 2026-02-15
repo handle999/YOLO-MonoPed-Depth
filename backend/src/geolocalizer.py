@@ -1,7 +1,9 @@
+# src/geolocalizer.py
 import numpy as np
 import math
 from geopy.distance import geodesic
 from geopy.point import Point
+from src.pose_utils import PoseConverter
 
 class GeoLocalizer:
     def __init__(self, camera_config):
@@ -10,7 +12,8 @@ class GeoLocalizer:
         camera_config: 字典，包含 height, pitch, yaw, gps, intrinsics 等
         """
         self.config = camera_config
-        self.earth_radius = 6371000  # 地球半径 (米)
+        self.earth_radius = 6371000                         # 地球半径 (米)
+        self.pose_converter = PoseConverter()               # 初始化姿态转换器
 
     def pixel_to_location_flat(self, idx, conf, bbox, image_shape):
         """
@@ -29,7 +32,7 @@ class GeoLocalizer:
         f_mm = self.config['hardware']['focal_length_mm']
         sensor_w_mm = self.config['hardware']['sensor_width_mm']
         img_h, img_w = image_shape
-        # [新增] 安全获取畸变系数 (可选参数，默认为空列表)
+        # 安全获取畸变系数 (可选参数，默认为空列表)
         dist_coeffs = self.config.get('distortion')
         if dist_coeffs is None:
             dist_coeffs = []
@@ -169,37 +172,23 @@ class GeoLocalizer:
         mode = "BBox"                 # 记录测距模式
 
         # 尝试使用骨骼测距 (Torso-based)
-        if keypoints is not None and len(keypoints) >= 12:
+        if keypoints is not None and len(keypoints) > 0:
             # COCO Keypoints: 
             # 5: 左肩, 6: 右肩, 11: 左胯, 12: 右胯
             # keypoints[i] = [x, y, conf]
             
-            # 提取关键点
-            kp_l_sh = keypoints[5]
-            kp_r_sh = keypoints[6]
-            kp_l_hip = keypoints[11]
-            kp_r_hip = keypoints[12]
+            # 调用封装好的逻辑，获取最佳参考段
+            skel_pix, skel_phy, skel_mode = self.pose_converter.get_best_reference_length(keypoints)
             
-            # 检查置信度 (例如 > 0.5 才算可见)
-            min_conf = 0.5
-            if (kp_l_sh[2] > min_conf and kp_r_sh[2] > min_conf and 
-                kp_l_hip[2] > min_conf and kp_r_hip[2] > min_conf):
-                
-                # 计算躯干中心点
-                shoulder_center_y = (kp_l_sh[1] + kp_r_sh[1]) / 2
-                hip_center_y = (kp_l_hip[1] + kp_r_hip[1]) / 2
-                
-                # 计算躯干像素长度 (垂直投影长度，更抗侧身干扰)
-                torso_pixel_h = abs(hip_center_y - shoulder_center_y)
-                
-                if torso_pixel_h > 10: # 防止过小导致除零爆炸
-                    ref_pixel_len = torso_pixel_h
-                    ref_physical_len = 0.53 # 成年人平均躯干长度 (约 53cm)
-                    mode = "Skeleton"
+            if skel_pix is not None and skel_pix > 5: # 像素太少说明太远，骨架不可靠
+                ref_pixel_len = skel_pix
+                ref_physical_len = skel_phy
+                mode = skel_mode  # 例如 "Torso_Full" 或 "Torso_Left"
         
         # 投影修正 (通用的 Stadiametric Ranging 公式)
         # D_slant = (f * H_real * cos(total_angle)) / h_pixel
         proj_factor = math.cos(total_depression_angle)
+        if ref_pixel_len <= 1: ref_pixel_len = 1 # 防止除以0
         slant_distance = (fy * ref_physical_len * proj_factor) / ref_pixel_len
 
         # 4. 分解向量 (3D Ray Casting)
@@ -230,14 +219,14 @@ class GeoLocalizer:
             "target_id": idx+1,
             "lat": target_gps.latitude,
             "lng": target_gps.longitude,
-            "alt": target_alt,                      # [新增] 返回算出来的目标海拔
+            "alt": target_alt,                      # 返回算出来的目标海拔
             "distance": horizontal_distance,        # 注意：这里返回的是水平投影距离，用于地图绘制
             "dist_range": (dist_min, dist_max),
-            "conf": conf,                           # [新增] 返回检测置信度，供 main.py 打印和前端展示
+            "conf": conf,                           # 返回检测置信度，供 main.py 打印和前端展示
             "bearing": target_bearing,
             "relative_angle": angle_h_deg,
             "bbox": bbox,
-            "keypoints": keypoints,                 # [新增] 返回关键点数据，方便前端展示或调试
-            "mode": mode                            # [新增] 返回测距模式，方便前端或日志展示
+            "keypoints": keypoints,                 # 返回关键点数据，方便前端展示或调试
+            "mode": mode                            # 返回测距模式，方便前端或日志展示
         }
     

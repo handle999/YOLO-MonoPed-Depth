@@ -56,7 +56,8 @@ def main():
     time_stats = {
         'total': [],
         'det': [],
-        'pose': []
+        'pose': [],
+        'post': []
     }
     all_gt_depths = []
     all_pred_depths = []
@@ -75,6 +76,7 @@ def main():
         time_stats['total'].append(ts['total_ms'])
         time_stats['det'].append(ts.get('det_ms', 0))   # 使用 .get 防止旧 json 报错
         time_stats['pose'].append(ts.get('pose_ms', 0))
+        time_stats['post'].append(ts.get('post_ms', 0))
 
         preds = pred_data['objects']
 
@@ -172,10 +174,12 @@ def main():
     avg_total = np.mean(time_stats['total'])
     avg_det = np.mean(time_stats['det'])
     avg_pose = np.mean(time_stats['pose'])
+    avg_post = np.mean(time_stats['post'])
     
     print(f"Time Statistics (Mean):")
     print(f"  Det : {avg_det:.1f} ms")
     print(f"  Pose: {avg_pose:.1f} ms")
+    print(f"  Post: {avg_post:.1f} ms")
     print(f"  Infr: {avg_total:.1f} ms (Total per Image)")
     print(f"Average Inference Time: {np.mean(time_stats['total']):.1f} ms/img")
     print("=" * NUM_SEPARATOR)
