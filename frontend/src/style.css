@@ -1,0 +1,132 @@
+/* 全局样式重置 */
+body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; }
+
+/* 容器布局 */
+.app-container { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.header { background: #1a1a1a; color: #fff; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000; }
+.header h2 { margin: 0; font-size: 18px; font-weight: 500; }
+
+.content-wrapper { display: flex; flex: 1; overflow: hidden; }
+
+/* 左侧边栏 */
+.sidebar { 
+  width: 380px; 
+  background: #f0f2f5; 
+  padding: 15px; 
+  overflow-y: auto; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 15px; 
+  border-right: 1px solid #ddd; 
+  box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+  z-index: 900; 
+}
+
+/* 右侧地图 */
+.map-container { flex: 1; position: relative; }
+
+/* 卡片通用样式 */
+.card { background: white; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.card-header { font-weight: bold; font-size: 14px; margin-bottom: 10px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+/* 分组标题 */
+.group-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #007bff;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* 输入框网格 */
+.input-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 10px; 
+  margin-bottom: 10px;
+}
+.input-item { 
+  display: flex; 
+  flex-direction: column; 
+  min-width: 0; 
+}
+.input-item label { 
+  font-size: 11px; 
+  color: #666; 
+  margin-bottom: 3px; 
+}
+.input-item input { 
+  width: 100%; 
+  box-sizing: border-box; 
+  padding: 5px; 
+  border: 1px solid #ccc; 
+  border-radius: 4px; 
+  font-size: 12px; 
+}
+.input-item input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* 按钮和上传 */
+.file-input { width: 100%; margin-bottom: 10px; font-size: 12px; }
+.run-btn { width: 100%; background: #007bff; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+.run-btn:hover { background: #0056b3; }
+.btn-disabled { background: #ccc; cursor: not-allowed; }
+
+/* 图片结果 - 可点击 */
+.img-box { position: relative; cursor: pointer; transition: transform 0.2s; }
+.img-box:hover { transform: scale(1.02); }
+.img-label { display: block; font-size: 12px; color: #999; margin-bottom: 2px; }
+.result-img { width: 100%; border-radius: 4px; border: 1px solid #eee; display: block; }
+.click-hint {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 20px;
+  font-size: 12px; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.img-box:hover .click-hint { opacity: 1; }
+
+/* Leaflet 自定义样式 */
+.custom-target-icon { background: transparent; border: none; }
+.target-badge {
+  width: 24px; height: 24px; background-color: #ff3b30; color: white;
+  border-radius: 50%; text-align: center; line-height: 22px;
+  font-weight: bold; font-size: 12px; border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.popup-content { font-size: 12px; line-height: 1.6; }
+.zoom-indicator {
+  background: white; padding: 5px 10px; border-radius: 4px;
+  border: 2px solid rgba(0,0,0,0.2); font-family: monospace;
+  font-weight: bold; font-size: 14px; color: #333;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+/* 图片查看器 Modal */
+.image-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85); z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.modal-content { max-width: 90%; max-height: 80vh; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+.modal-actions { margin-top: 15px; display: flex; gap: 15px; }
+.modal-btn {
+  padding: 8px 20px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; font-size: 14px;
+}
+.btn-download { background: #28a745; color: white; }
+.btn-close { background: #dc3545; color: white; }
+
+/* 下拉选择框样式 */
+.mode-select {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: white;
+}
+.mode-select:focus {
+  border-color: #007bff;
+  outline: none;
+}
