@@ -1,8 +1,7 @@
 # Data
 data/images
 data/outputs
-data/kitti
-data/kitti_rsts
+data/kitti*/
 
 runs
 

@@ -66,3 +66,30 @@ python infer_loc.py --det_weight ./models/Detect/yolo26x.pt --source data/images
 python infer_loc.py --det_weight ./models/Detect/yolo26l.pt --pose_weight ./models/Pose/yolo11l-pose.pt --source data/images/3.jpg --save_radar --terrain mount
 ```
 
+# 3. kitti infer
+
+See in [KITTI](data/KITTI.md)
+
+```shell
+python kitti_infer.py --limit 10
+
+python kitti_eval.py
+```
+
+```shell
+================================================================================
+Difficulty      | Count    | ALE (m)    | ALP (<0.5m)  | ALP (<1m)  | ALP (<2m)
+--------------------------------------------------------------------------------
+Easy            | 2049     | 0.993      | 40.7        % | 67.4      % | 87.9      %
+Moderate        | 2700     | 1.085      | 38.4        % | 65.2      % | 85.8      %
+Hard            | 2888     | 1.138      | 37.5        % | 63.7      % | 84.5      %
+All             | 2954     | 1.131      | 37.7        % | 63.9      % | 84.6      %
+--------------------------------------------------------------------------------
+Time Statistics (Mean):
+  Det : 18.6 ms
+  Pose: 15.3 ms
+  Post: 0.1 ms
+  Infr: 34.1 ms (Total per Image)
+Average Inference Time: 34.1 ms/img
+================================================================================
+```
