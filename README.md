@@ -2,7 +2,7 @@
 
 **[中文]** | [English](README_EN.md)
 
-**YOLO-MonoPed-Depth** 是一个基于单目视觉的行人几何深度估计系统。它创新性地结合了 **Object Detection (YOLO-Det)** 与 **Pose Estimation (YOLO-Pose)**，通过人体骨架的生物力学特征（如躯干长度、肩宽）来解决传统 BBox 测距在**人体弯腰、遮挡、半身截断**等复杂场景下失效的问题。
+**YOLO-MonoPed-Depth** 是一个基于单目视觉的行人几何深度估计系统。它结合了 **Object Detection (YOLO-Det)** 与 **Pose Estimation (YOLO-Pose)**，通过人体骨架的生物力学特征（如躯干长度、肩宽）来解决传统 BBox 测距在**人体弯腰、遮挡、半身截断**等复杂场景下失效的问题。
 
 本项目包含完整的 **FastAPI 后端**、**Vue3 可视化前端**，以及针对 **KITTI 3D 数据集** 的完整评测与验证工具链。
 
