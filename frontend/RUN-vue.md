@@ -1,13 +1,22 @@
-frontend/                   # [前端] Vue 3 + Vite 项目
-├── public/
+```text
+frontend/                       # [前端] Vue 3 + Vite 项目
+├── public/                     # 静态资源 (如图标)
 ├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── App.vue             # [核心] 主页面逻辑
-│   └── main.js             # 入口文件
-├── index.html
-├── package.json
-└── vite.config.js
+│   ├── api/                    # [新增] 网络请求层
+│   │   └── localization.js     # 封装统一的 Axios 请求逻辑，解耦业务
+│   ├── assets/                 # 内部静态资产
+│   ├── components/             # [新增] 拆分后的独立 UI 组件库
+│   │   ├── ConfigForm.vue      # 左侧侧边栏：参数配置表单与图像上传
+│   │   ├── ResultGallery.vue   # 左侧侧边栏：AI检测/骨架/雷达视图展示
+│   │   ├── MapDisplay.vue      # 右侧主视图：Leaflet 地图渲染与目标标记
+│   │   └── ImageModal.vue      # 悬浮组件：全屏大图查看与下载
+│   ├── App.vue                 # [核心] 主页面容器 (仅负责状态管理与组件调度)
+│   ├── main.js                 # 核心入口文件 (挂载 Vue 实例与 Leaflet 样式)
+│   └── style.css               # [新增] 科技暗黑风主题全局样式
+├── index.html                  # HTML 模板
+├── package.json                # 前端依赖配置 (axios, leaflet 等)
+└── vite.config.js              # Vite 构建配置
+```
 
 # 1. env
 

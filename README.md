@@ -57,30 +57,34 @@
 
 ```text
 root/                           # [根项目目录]
-├── backend/                    # [后端] 基于 FastAPI + Ultralytics
-│   ├── api/                    # API 路由与 Schema 定义
-│   ├── data/                   # 数据存放区
-│   │   └── KITTI.md            # KITTI 数据集详细说明
-│   ├── models/                 # 模型权重存放 (Detect/Pose)
-│   ├── src/                    # 核心算法源码
-│   │   ├── detector.py         # YOLO 推理封装 (支持 Batch Inference 加速)
-│   │   ├── geolocalizer.py     # 几何定位与坐标转换核心
-│   │   ├── pose_utils.py       # [核心] 智能骨架长度提取策略
-│   │   ├── utils.py            # [核心] 其他功能（如base64图片读取等）
-│   │   └── visualizer.py       # 可视化绘图 (骨架图/雷达图)
-│   ├── infer_loc.py            # 单图/视频推理演示脚本
-│   ├── kitti_infer.py          # KITTI 数据集批量推理脚本 (含 Warmup & 计时)
-│   ├── kitti_eval.py           # KITTI 评测指标计算 (ALE/ALP)
-│   ├── main.py                 # 后端服务入口
-│   └── requirements.txt
+├── backend/                    # [后端] 基于 Flask + Ultralytics (已重构)
+│   ├── api/                    
+│   │   └── schemas.py          # Pydantic 数据验证与响应模型
+│   ├── data/                   # 数据存放区与评估结果
+│   │   └── KITTI.md            # KITTI 数据集评估说明
+│   ├── models/                 # 模型权重池
+│   │   ├── Detect/             # 检测模型 (yolo11l.pt, yolo26l.pt 等)
+│   │   └── Pose/               # 姿态模型 (yolo11l-pose.pt 等)
+│   ├── src/                    # 核心算法引擎库
+│   │   ├── detector.py         # YOLO 推理封装 (支持 Batch 推理与动态 GPU 模型缓存)
+│   │   ├── geolocalizer.py     # 几何定位与坐标转换核心 (Flat/Mount 双模式)
+│   │   ├── pose_utils.py       # [核心] 人体生物力学智能骨架测距策略
+│   │   ├── utils.py            # 工具类 (Base64编解码、多边形经纬度推算等)
+│   │   └── visualizer.py       # 可视化绘图 (2D框、17关键点骨架图、BEV雷达图)
+│   ├── infer_loc.py            # 单图/视频推理演示脚本 (CLI)
+│   ├── kitti_infer.py          # KITTI 数据集批量推理工作流
+│   ├── kitti_eval.py           # KITTI 评测脚本 (AP_R40, ALE/ALP 误差分布统计)
+│   ├── main.py                 # [入口] Flask Web 服务，对外提供 RESTful API
+│   └── requirements.txt        # Python 依赖清单
 │
 └── frontend/                   # [前端] Vue 3 + Vite
     ├── src/
-    │   ├── components/
-    │   ├── App.vue             # 主交互页面 (参数配置/地图展示)
-    │   └── main.js
+    │   ├── api/                # API 接口统一管理
+    │   ├── components/         # 模块化 Vue 组件
+    │   ├── App.vue             # 极简版页面入口
+    │   ├── style.css           # 统一 UI 样式库
+    │   └── main.js             
     └── vite.config.js
-
 ```
 
 ---
