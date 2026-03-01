@@ -4,6 +4,8 @@
 
 **YOLO-MonoPed-Depth** is a monocular pedestrian geometric depth estimation system. It combines **Object Detection (YOLO-Det)** and **Pose Estimation (YOLO-Pose)** to solve the limitations of traditional BBox-based ranging methods, specifically addressing issues like **bending, occlusion, and truncation** by leveraging biomechanical features (e.g., torso length, shoulder width).
 
+![Method](figs/framework.png)
+
 The project includes a full **FastAPI Backend**, a **Vue3 Frontend**, and a complete toolchain for evaluation on the **KITTI 3D Dataset**.
 
 ![Demo](figs/system.png)
