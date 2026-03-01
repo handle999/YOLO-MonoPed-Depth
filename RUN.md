@@ -62,15 +62,15 @@ npm run dev
 
     "image_data": {
         "image_url": "http://example.com/image.jpg", // [可选] url，图像URL链接
-        "base64": "/9j/4AAQSkZJRg...", // [可选] base64，包含嫌疑人的现场图像
+        "base64": "/9j/4AAQSkZJRg...", // [可选] base64，包含行人的现场图像
     }, // [必填其一] 图像数据，可以是URL或Base64编码。且大小必须与上面的 image_resolution 一致（内部判断无需传参），否则后端报错
 
     "targets": [
         {
-            "target_id": "person_01", // string，嫌疑人编码ID，每张图独立计数
+            "target_id": "person_01", // string，行人编码ID，每张图独立计数
             "bbox": { 
                 "x": 100, "y": 200, "w": 50, "h": 120 
-            }, // [必填] dict-float/int，本嫌疑人在图中的像素检测框。具体[x, y, w, h]还是[x_min, y_min, x_max, y_max]由双方事先约定
+            }, // [必填] dict-float/int，本行人在图中的像素检测框。具体[x, y, w, h]还是[x_min, y_min, x_max, y_max]由双方事先约定
             "attributes": { 
                 "type": "adult",
                 "gender": "male / female"
@@ -91,19 +91,19 @@ npm run dev
         "req_id": "uuid-1234-5678", // [建议] string，请求追踪ID，用于确认，或并发场景对应
         "results": [
             {
-                "target_id": "person_01", // 对应请求中的嫌疑人编码ID
-                    "suspect_geo_location": { 
+                "target_id": "person_01", // 对应请求中的行人编码ID
+                "suspect_geo_location": { 
                         "lat": 22.54325, 
                         "lng": 114.05760,
                         "alt": 0.0 
-                }, // [必填] 推算出的嫌疑人地理坐标
+                }, // [必填] 推算出的行人地理坐标
                 "confidence": 0.95, // [必填] float，置信度 (0.0 - 1.0)
                 "suspect_region_polygon": [
                     {"lat": 22.54320, "lng": 114.05758}, // 近点左
                     {"lat": 22.54320, "lng": 114.05762}, // 近点右
                     {"lat": 22.54330, "lng": 114.05765}, // 远点右
                     {"lat": 22.54330, "lng": 114.05755}  // 远点左
-                ], // [必填] 嫌疑人所在误差区域的地理多边形顶点列表，用于前端地图可视化
+                ], // [必填] 行人所在误差区域的地理多边形顶点列表，用于前端地图可视化
 
                 "computation_details": {
                     "calculated_depth": 15.3,   // 垂直深度 (Z) - 米

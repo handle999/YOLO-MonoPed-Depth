@@ -1,9 +1,9 @@
-fastapi
-uvicorn
-pydantic
-opencv-python
-numpy
-ultralytics
+flask               # 替换 fastapi
+flask-cors          # 处理跨域请求
+pydantic            # 数据验证和序列化
+opencv-python<=4.10
+numpy<=1.26
+ultralytics>=8.4
 geopy
 requests
 python-multipart

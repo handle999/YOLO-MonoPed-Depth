@@ -104,27 +104,27 @@ Key Highlights:
 * **Accuracy**: Achieved an ALE of **0.99m** on the Easy set.
 * **Speed**: Optimized with **Batch Inference** for Pose, achieving **~34ms per image** (Real-time).
 
-Performance on the KITTI training + validation set using `yolo26l.pt` (Detect) + `yolo11l-pose.pt` (Pose): 
+Performance on the KITTI training + validation set using `yolo26x.pt` (Detect) + `yolo26x-pose.pt` (Pose): 
 
 ```text
-================================================================================
-Difficulty      | Count    | ALE (m)    | ALP (<0.5m)  | ALP (<1m)  | ALP (<2m)
---------------------------------------------------------------------------------
-Easy            | 2049     | 0.993      | 40.7        % | 67.4      % | 87.9      %
-Moderate        | 2700     | 1.085      | 38.4        % | 65.2      % | 85.8      %
-Hard            | 2888     | 1.138      | 37.5        % | 63.7      % | 84.5      %
-All             | 2954     | 1.131      | 37.7        % | 63.9      % | 84.6      %
---------------------------------------------------------------------------------
-Time Statistics (Mean on RTX 4090):
-  Det : 18.6 ms
-  Pose: 15.3 ms (Batch Inference)
-  Infr: 34.1 ms (Total per Image)
-Average FPS: ~29 FPS
-================================================================================
-
+==============================================================================================================
+ EVALUATION REPORT (Pedestrian, IoU=0.5)
+--------------------------------------------------------------------------------------------------------------
+Difficulty   | Count   | AP_R11   | AP_R40   | ALE Mean   | ALE Min  | ALE Max  | ALE Std  | ALP <0.5m | ALP <1m | ALP <2m
+--------------------------------------------------------------------------------------------------------------
+Easy         | 2151    | 67.66    | 66.61    | 1.137      | 0.000    | 12.487   | 1.290    | 37.1    % | 63.3  % | 83.8  %
+Moderate     | 2938    | 57.14    | 57.91    | 1.331      | 0.000    | 13.918   | 1.633    | 34.8    % | 59.5  % | 80.1  %
+Hard         | 3142    | 50.38    | 50.56    | 1.381      | 0.000    | 13.918   | 1.692    | 34.2    % | 58.5  % | 79.0  %
+All          | 3229    | -        | -        | 1.394      | 0.000    | 31.578   | 1.797    | 34.3    % | 58.7  % | 79.1  %
+--------------------------------------------------------------------------------------------------------------
+Time Statistics (per image):
+  Det   : Mean=20.0ms, Min=13.3ms, Max=79.9ms, Std=5.4ms
+  Pose  : Mean=37.3ms, Min=0.0ms, Max=9366.1ms, Std=200.2ms
+  Infr  : Mean=57.5ms, Min=13.3ms, Max=9386.3ms, Std=200.5ms
+==============================================================================================================
 ```
 
-![Eval performance](figs/kitti_evaluation_report.png "KITTI performance")
+![Eval performance](figs/kitti_eval_plot.png "KITTI performance")
 
 ## 5. Acknowledgment
 

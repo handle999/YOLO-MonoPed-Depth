@@ -32,11 +32,12 @@ class PersonDetector:
             # print("Pose model path not provided. Running in Detection-Only mode.")
             pass
 
-    def detect(self, image, use_pose=False):
+    def detect(self, image, use_pose=False, pad_ratio=0.25):
         """
         执行检测 (支持纯检测 或 检测+姿态)
         :param image: 图片路径(str) 或 cv2图像(numpy array)
         :param use_pose: 是否开启姿态估计 (需要初始化时加载了 pose_model)
+        :param pad_ratio: 裁切时的外扩比例 (默认 25%)
         :return: list of dicts
         """
         # print(use_pose and "Running Detection + Pose Estimation..." or "Running Detection Only...")
@@ -82,8 +83,8 @@ class PersonDetector:
                     # A. 计算 Padding (外扩 15%，防止肢体被切断)
                     w_box = x2 - x1
                     h_box = y2 - y1
-                    pad_w = int(w_box * 0.15)
-                    pad_h = int(h_box * 0.15)
+                    pad_w = int(w_box * pad_ratio)
+                    pad_h = int(h_box * pad_ratio)
                     
                     # B. 限制裁切坐标不超出图片范围
                     crop_x1 = max(0, x1 - pad_w)
@@ -113,7 +114,7 @@ class PersonDetector:
                 offset_x, offset_y = pose_offsets[idx]
                 
                 # 提取关键点并还原坐标
-                if result.keypoints is not None and result.keypoints.data.shape[1] > 0:
+                if result.keypoints is not None and len(result.keypoints.data) > 0:
                     kpts_local = result.keypoints.data[0].cpu().numpy()
                     
                     # 计算平均置信度 (仅用于调试打印，可选)
@@ -128,7 +129,7 @@ class PersonDetector:
                         v = kp[2]
                         kpts_global.append([gx, gy, v])
                     
-                    # [修改] 回填到 detections 列表里
+                    # 回填到 detections 列表里
                     detections[target_det_idx]['keypoints'] = kpts_global
                     
         return detections

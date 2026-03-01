@@ -20,9 +20,9 @@ def parse_args():
     # --- 1. 文件路径配置 ---
     group_path = parser.add_argument_group('Paths')
     group_path.add_argument('--kitti_root', type=str, default='data/kitti', help='KITTI 数据集根目录')
-    group_path.add_argument('--output_dir', type=str, default='data/kitti_rsts', help='结果输出目录')
+    group_path.add_argument('--output_dir', type=str, default='data/yolo26_rsts', help='结果输出目录')
     group_path.add_argument('--det_model', type=str, default='./models/Detect/yolo26l.pt', help='检测模型路径')
-    group_path.add_argument('--pose_model', type=str, default='./models/Pose/yolo11l-pose.pt', help='姿态模型路径')
+    group_path.add_argument('--pose_model', type=str, default='./models/Pose/yolo26l-pose.pt', help='姿态模型路径')
 
     # --- 2. 硬件与模型配置 ---
     group_hw = parser.add_argument_group('Hardware & Model')
@@ -38,16 +38,61 @@ def parse_args():
     return parser.parse_args()
 
 def parse_calib(calib_path):
-    """从 P2 矩阵提取焦距 fx"""
-    if not os.path.exists(calib_path): return None
+    """
+    [修改] 从 P2 矩阵提取完整投影矩阵 (3x4) 以及焦距 fx
+    返回: (fx, P2_matrix)
+    """
+    if not os.path.exists(calib_path): return None, None
     with open(calib_path, 'r') as f:
         for line in f.readlines():
             if line.startswith('P2:'):
-                # P2 是 3x4 矩阵，P2[0,0] 即为 fx (像素焦距)
                 parts = line.split()
-                if len(parts) > 1:
-                    return float(parts[1])
-    return None
+                if len(parts) > 12:
+                    # P2 是 3x4 矩阵
+                    p2 = np.array([float(x) for x in parts[1:]]).reshape(3, 4)
+                    fx = p2[0, 0]
+                    return fx, p2
+    return None, None
+
+def generate_kitti_line(obj, calib_p2):
+    """
+    [新增] 将检测结果转换为 KITTI 提交格式字符串 (16列)
+    obj: dict, 包含 'bbox', 'distance', 'conf'
+    calib_p2: 3x4 numpy array
+    """
+    cls_type = "Pedestrian"
+    truncation = 0.00
+    occlusion = 0 # 默认无遮挡
+    alpha = -10.0 # 观测角 (未知填-10)
+    
+    x1, y1, x2, y2 = obj['bbox']
+    
+    # 3D 尺寸先验 (H, W, L)
+    h, w, l = 1.75, 0.6, 0.7 
+    
+    # 3D 位置计算 (Camera Coordinate)
+    z = obj['distance']
+    
+    fx = calib_p2[0, 0]
+    cx = calib_p2[0, 2]
+    fy = calib_p2[1, 1]
+    cy = calib_p2[1, 2]
+    
+    # 基于 BBox 中心和底部反推 x, y
+    u_c = (x1 + x2) / 2
+    v_b = y2 
+    
+    x = (u_c - cx) * z / fx
+    y = (v_b - cy) * z / fy 
+    
+    ry = -10.0 # 朝向 (未知填-10)
+    score = obj['conf']
+    
+    return f"{cls_type} {truncation:.2f} {occlusion} {alpha:.2f} " \
+           f"{x1:.2f} {y1:.2f} {x2:.2f} {y2:.2f} " \
+           f"{h:.2f} {w:.2f} {l:.2f} " \
+           f"{x:.2f} {y:.2f} {z:.2f} " \
+           f"{ry:.2f} {score:.2f}"
 
 def main():
     args = parse_args()
@@ -56,9 +101,13 @@ def main():
     base_img_dir = os.path.join(args.kitti_root, 'data_object_image_2', 'training', 'image_2')
     base_calib_dir = os.path.join(args.kitti_root, 'data_object_calib', 'training', 'calib')
     
-    save_json_dir = os.path.join(args.output_dir, 'data')
+    # [修改] 定义两种输出目录
+    save_json_dir = os.path.join(args.output_dir, 'json') # 存 JSON (你的格式)
+    save_txt_dir = os.path.join(args.output_dir, 'data') # [新增] 存 TXT (KITTI格式)
     save_vis_dir = os.path.join(args.output_dir, 'vis')
+    
     os.makedirs(save_json_dir, exist_ok=True)
+    os.makedirs(save_txt_dir, exist_ok=True) # [新增]
     os.makedirs(save_vis_dir, exist_ok=True)
 
     # 2. 初始化模型
@@ -73,15 +122,12 @@ def main():
     # ================= [预热] GPU 冷启动 Warmup =================
     print("🔥 Warming up GPU...")
     dummy_img = np.zeros((375, 1242, 3), dtype=np.uint8)
-    # 强制运行一次 Detect
     detector.detect(dummy_img, use_pose=False) 
-    # 强制运行一次 Pose
     if detector.pose_model:
         detector.pose_model(dummy_img, verbose=False, device=args.device)
     print("✅ Warmup complete. Starting benchmark...")
     # ==========================================================
 
-    # 获取文件列表
     if not os.path.exists(base_img_dir):
         print(f"Error: Image directory not found: {base_img_dir}")
         return
@@ -103,13 +149,14 @@ def main():
 
         # B. 读 Calib
         calib_path = os.path.join(base_calib_dir, f"{file_id}.txt")
-        fx = parse_calib(calib_path)
+        # [修改] 获取完整 P2 矩阵
+        fx, p2_matrix = parse_calib(calib_path)
         if fx is None: continue
 
         # C. 动态配置 Geolocalizer
         config = {
             'gps': {'lat': 0, 'lng': 0, 'alt': 0},
-            'height': args.cam_height,             # 使用参数控制高度
+            'height': args.cam_height, 
             'pose': {'pitch': 0, 'yaw': 0, 'roll': 0}, 
             'hardware': {'focal_length_mm': fx, 'sensor_width_mm': w}
         }
@@ -118,21 +165,15 @@ def main():
         # --- 计时开始 ---
         t_start_total = time.time()
         
-        # -------------------------------------------------
-        # Phase 1: Detection (检测)
-        # -------------------------------------------------
+        # Phase 1: Detection
         t_det_start = time.time()
-        # 此时只运行检测，不运行 pose
         detections = detector.detect(frame, use_pose=False) 
         t_det_end = time.time()
         
-        # -------------------------------------------------
-        # Phase 2: Pose Estimation (姿态) - 手动分步以统计时间
-        # -------------------------------------------------
+        # Phase 2: Pose Estimation
         t_pose_start = time.time()
         
         if args.mode == 'mount' and detector.pose_model:
-            # 2.1 收集所有行人的 Crop (Batch Preparation)
             pose_crops = []
             pose_indices = []
             pose_offsets = []
@@ -140,7 +181,6 @@ def main():
             for i, det in enumerate(detections):
                 x1, y1, x2, y2 = det['bbox']
                 
-                # Padding 逻辑
                 w_box, h_box = x2 - x1, y2 - y1
                 pad_w, pad_h = int(w_box * 0.15), int(h_box * 0.15)
                 crop_x1 = max(0, x1 - pad_w)
@@ -155,16 +195,14 @@ def main():
                     pose_indices.append(i)
                     pose_offsets.append((crop_x1, crop_y1))
 
-            # 2.2 批量推理 (Batch Inference) - 利用 GPU 并行加速
             if len(pose_crops) > 0:
                 batch_results = detector.pose_model(pose_crops, verbose=False, conf=0.5, device=args.device)
                 
-                # 2.3 结果回填
                 for idx, result in enumerate(batch_results):
                     target_idx = pose_indices[idx]
                     off_x, off_y = pose_offsets[idx]
                     
-                    if result.keypoints is not None and result.keypoints.data.shape[1] > 0:
+                    if result.keypoints is not None and len(result.keypoints.data) > 0:
                         kpts_local = result.keypoints.data[0].cpu().numpy()
                         kpts_global = []
                         for kp in kpts_local:
@@ -174,9 +212,7 @@ def main():
 
         t_pose_end = time.time()
 
-        # -------------------------------------------------
-        # Phase 3: Localization (定位计算)
-        # -------------------------------------------------
+        # Phase 3: Localization
         processed_results = []
         for det in detections:
             loc_res = None
@@ -188,14 +224,14 @@ def main():
                 loc_res = localizer.pixel_to_location_flat(0, det['conf'], det['bbox'], (h,w))
             
             if loc_res:
-                loc_res['target_id'] = "P" # 统一 ID
+                loc_res['target_id'] = "P"
                 loc_res['conf'] = det['conf']
                 if kpts: loc_res['keypoints'] = kpts
                 processed_results.append(loc_res)
 
         t_end_total = time.time()
 
-        # --- 保存结果 ---
+        # --- 保存结果 1: JSON (你的格式) ---
         save_data = {
             'file_id': file_id,
             'image_size': [w, h],
@@ -208,7 +244,11 @@ def main():
             'objects': []
         }
 
+        # [新增] 准备 KITTI TXT 内容列表
+        kitti_lines = []
+
         for res in processed_results:
+            # 1. 填充 JSON
             obj_data = {
                 'bbox': res['bbox'],
                 'depth_pred': res['distance'],
@@ -216,9 +256,18 @@ def main():
                 'mode': res.get('mode', 'N/A')
             }
             save_data['objects'].append(obj_data)
+            
+            # 2. [新增] 生成 KITTI Line
+            line = generate_kitti_line(res, p2_matrix)
+            kitti_lines.append(line)
 
+        # 写 JSON
         with open(os.path.join(save_json_dir, f"{file_id}.json"), 'w') as f:
             json.dump(save_data, f, indent=2)
+            
+        # [新增] 写 TXT (KITTI 格式)
+        with open(os.path.join(save_txt_dir, f"{file_id}.txt"), 'w') as f:
+            f.write('\n'.join(kitti_lines))
 
         # --- 保存可视化 ---
         if args.mode == 'mount':

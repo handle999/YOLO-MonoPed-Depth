@@ -2,6 +2,7 @@
 data/images
 data/outputs
 data/kitti*/
+data/*_rsts/
 
 runs
 

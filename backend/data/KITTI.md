@@ -9,6 +9,7 @@ Download zips
 
 ## 1.1. structure
 
+```text
 backend/data/kitti/
 ├── data_object_calib/
 ├── data_object_image_2/
@@ -19,6 +20,7 @@ backend/data/kitti/
 │     ├── testing/
 ├── testing/
 ├── data_object_label_2/
+```
 
 ## 1.2. label info
 
@@ -84,34 +86,166 @@ python kitti_eval.py
 
 # 3. KITTI rsts
 
+## 3.1. KITTI info
+
+```text
+==================================================
+ KITTI DATASET INFO (Ground Truth)
+--------------------------------------------------
+ Total Target Files : 7481
+ Total Pedestrians  : 4487
+  - Easy            : 2310
+  - Moderate        : 3569
+  - Hard            : 4276
+==================================================
+```
+
+## 3.2. my eval
+
+### 3.2.1. yolo26l + yolo11l-pose
+
 ```shell
-(YOLO) E:\School\2026\WeiTong\YOLO\backend>python kitti_infer.py
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_infer.py --output_dir data/yolo26l11l_rsts --det_model ./models/Detect/yolo26l.pt --pose_model ./models/Pose/yolo11l-pose.pt                                           
 🚀 Loading models on device: 0...
 🔥 Warming up GPU...
 ✅ Warmup complete. Starting benchmark...
 Start Inference on 7481 images...
-100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [07:31<00:00, 16.57it/s] 
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [08:04<00:00, 15.44it/s] 
 
-Inference Complete! Results saved to data/kitti_rsts_2
+Inference Complete! Results saved to data/yolo26l11l_rsts
 
-(YOLO) E:\School\2026\WeiTong\YOLO\backend>python kitti_eval.py --result_dir data/kitti_rsts_2/data
-Evaluating 7481 files...
-100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [01:15<00:00, 99.54it/s]
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_eval.py --result_dir data/yolo26l11l_rsts/json
+Loading data from 7481 files...
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [01:13<00:00, 101.14it/s]
 
-================================================================================
-Difficulty      | Count    | ALE (m)    | ALP (<0.5m)  | ALP (<1m)  | ALP (<2m)
---------------------------------------------------------------------------------
-Easy            | 2049     | 0.993      | 40.7        % | 67.4      % | 87.9      %
-Moderate        | 2700     | 1.085      | 38.4        % | 65.2      % | 85.8      %
-Hard            | 2888     | 1.138      | 37.5        % | 63.7      % | 84.5      %
-All             | 2954     | 1.131      | 37.7        % | 63.9      % | 84.6      %
---------------------------------------------------------------------------------
-Time Statistics (Mean):
-  Det : 18.6 ms
-  Pose: 15.3 ms
-  Post: 0.1 ms
-  Infr: 34.1 ms (Total per Image)
-Average Inference Time: 34.1 ms/img
-================================================================================
-Chart saved to kitti_evaluation_report.png
+==============================================================================================================
+ EVALUATION REPORT (Pedestrian, IoU=0.5)
+--------------------------------------------------------------------------------------------------------------
+Difficulty   | Count   | AP_R11   | AP_R40   | ALE Mean   | ALE Min  | ALE Max  | ALE Std  | ALP <0.5m | ALP <1m | ALP <2m
+--------------------------------------------------------------------------------------------------------------
+Easy         | 2129    | 64.89    | 65.14    | 1.028      | 0.001    | 13.561   | 1.210    | 39.9    % | 66.1  % | 86.9  %
+Moderate     | 2892    | 56.66    | 57.14    | 1.221      | 0.000    | 21.724   | 1.559    | 36.7    % | 62.3  % | 83.1  %
+Hard         | 3091    | 49.89    | 49.94    | 1.269      | 0.000    | 21.724   | 1.602    | 35.7    % | 61.0  % | 81.9  %
+All          | 3165    | -        | -        | 1.270      | 0.000    | 21.724   | 1.622    | 36.1    % | 61.4  % | 82.0  %
+--------------------------------------------------------------------------------------------------------------
+Time Statistics (per image):
+  Det   : Mean=20.0ms, Min=13.9ms, Max=49.8ms, Std=5.8ms
+  Pose  : Mean=17.6ms, Min=0.0ms, Max=414.7ms, Std=42.7ms
+  Infr  : Mean=37.7ms, Min=13.9ms, Max=449.3ms, Std=43.6ms
+==============================================================================================================
 ```
+
+
+### 3.2.2. yolo26l + yolo26l-pose
+
+```shell
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_infer.py --output_dir data/yolo26l_rsts --det_model ./models/Detect/yolo26l.pt --pose_model ./models/Pose/yolo26l-pose.pt
+🚀 Loading models on device: 0...
+🔥 Warming up GPU...
+✅ Warmup complete. Starting benchmark...
+Start Inference on 7481 images...
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [08:26<00:00, 14.76it/s] 
+
+Inference Complete! Results saved to data/yolo26l_rsts/json
+
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_eval.py --result_dir data/yolo26l_rsts/json
+Loading data from 7481 files...
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [01:08<00:00, 108.99it/s]
+
+==============================================================================================================
+ EVALUATION REPORT (Pedestrian, IoU=0.5)
+--------------------------------------------------------------------------------------------------------------
+Difficulty   | Count   | AP_R11   | AP_R40   | ALE Mean   | ALE Min  | ALE Max  | ALE Std  | ALP <0.5m | ALP <1m | ALP <2m
+--------------------------------------------------------------------------------------------------------------
+Easy         | 2129    | 64.89    | 65.14    | 1.000      | 0.001    | 17.669   | 1.189    | 40.9    % | 67.4  % | 87.4  %
+Moderate     | 2892    | 56.66    | 57.14    | 1.184      | 0.001    | 18.529   | 1.505    | 37.5    % | 63.5  % | 83.8  %
+Hard         | 3091    | 49.89    | 49.94    | 1.230      | 0.001    | 18.529   | 1.549    | 36.8    % | 62.3  % | 82.7  %
+All          | 3165    | -        | -        | 1.230      | 0.001    | 18.529   | 1.569    | 37.1    % | 62.8  % | 82.8  %
+--------------------------------------------------------------------------------------------------------------
+Time Statistics (per image):
+  Det   : Mean=21.3ms, Min=13.9ms, Max=45.5ms, Std=5.8ms
+  Pose  : Mean=18.0ms, Min=0.0ms, Max=435.5ms, Std=43.3ms
+  Infr  : Mean=39.4ms, Min=13.9ms, Max=473.2ms, Std=44.2ms
+==============================================================================================================
+```
+
+### 3.2.3. yolo26x + yolo26x-pose
+
+```shell
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_infer.py --output_dir data/yolo26x_rsts --det_model ./models/Detect/yolo26x.pt --pose_model ./models/Pose/yolo26x-pose.pt
+🚀 Loading models on device: 0...
+🔥 Warming up GPU...
+✅ Warmup complete. Starting benchmark...
+Start Inference on 7481 images...
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [10:39<00:00, 11.70it/s]
+
+Inference Complete! Results saved to data/yolo26x_rsts
+
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_eval.py --result_dir data/yolo26x_rsts/json                                                            
+Loading data from 7481 files...
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [00:46<00:00, 162.36it/s]
+
+==============================================================================================================
+ EVALUATION REPORT (Pedestrian, IoU=0.5)
+--------------------------------------------------------------------------------------------------------------
+Difficulty   | Count   | AP_R11   | AP_R40   | ALE Mean   | ALE Min  | ALE Max  | ALE Std  | ALP <0.5m | ALP <1m | ALP <2m
+--------------------------------------------------------------------------------------------------------------
+Easy         | 2151    | 67.66    | 66.61    | 1.137      | 0.000    | 12.487   | 1.290    | 37.1    % | 63.3  % | 83.8  %
+Moderate     | 2938    | 57.14    | 57.91    | 1.331      | 0.000    | 13.918   | 1.633    | 34.8    % | 59.5  % | 80.1  %
+Hard         | 3142    | 50.38    | 50.56    | 1.381      | 0.000    | 13.918   | 1.692    | 34.2    % | 58.5  % | 79.0  %
+All          | 3229    | -        | -        | 1.394      | 0.000    | 31.578   | 1.797    | 34.3    % | 58.7  % | 79.1  %
+--------------------------------------------------------------------------------------------------------------
+Time Statistics (per image):
+  Det   : Mean=20.0ms, Min=13.3ms, Max=79.9ms, Std=5.4ms
+  Pose  : Mean=37.3ms, Min=0.0ms, Max=9366.1ms, Std=200.2ms
+  Infr  : Mean=57.5ms, Min=13.3ms, Max=9386.3ms, Std=200.5ms
+==============================================================================================================
+```
+
+### 3.2.4. yolo11l + yolo11l-pose
+
+```shell
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_infer.py --output_dir data/yolo11l_rsts --det_model ./models/Detect/yolo11l.pt --pose_model ./models/Pose/yolo11l-pose.pt
+🚀 Loading models on device: 0...
+🔥 Warming up GPU...
+✅ Warmup complete. Starting benchmark...
+Start Inference on 7481 images...
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [08:22<00:00, 14.88it/s] 
+
+Inference Complete! Results saved to data/yolo11l_rsts
+
+(yolo) E:\School\2026\WeiTong\YOLO\backend>python kitti_eval.py --result_dir data/yolo11l_rsts/json                                                            
+Loading data from 7481 files...
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7481/7481 [01:15<00:00, 99.02it/s]
+
+==============================================================================================================
+ EVALUATION REPORT (Pedestrian, IoU=0.5)
+--------------------------------------------------------------------------------------------------------------
+Difficulty   | Count   | AP_R11   | AP_R40   | ALE Mean   | ALE Min  | ALE Max  | ALE Std  | ALP <0.5m | ALP <1m | ALP <2m
+--------------------------------------------------------------------------------------------------------------
+Easy         | 2115    | 67.69    | 66.86    | 1.086      | 0.000    | 39.616   | 1.522    | 39.0    % | 65.7  % | 86.0  %
+Moderate     | 2844    | 57.63    | 57.21    | 1.227      | 0.000    | 39.616   | 1.667    | 36.1    % | 62.2  % | 82.8  %
+Hard         | 3031    | 50.88    | 49.77    | 1.267      | 0.000    | 39.616   | 1.702    | 35.5    % | 61.1  % | 81.9  %
+All          | 3100    | -        | -        | 1.270      | 0.000    | 39.616   | 1.786    | 35.9    % | 61.5  % | 82.0  %
+--------------------------------------------------------------------------------------------------------------
+Time Statistics (per image):
+  Det   : Mean=21.9ms, Min=14.8ms, Max=65.7ms, Std=6.3ms
+  Pose  : Mean=17.7ms, Min=0.0ms, Max=707.6ms, Std=42.8ms
+  Infr  : Mean=39.6ms, Min=14.8ms, Max=743.1ms, Std=44.1ms
+==============================================================================================================
+```
+
+## 3.3. official eval
+
+只去当前运行目录下的 data/object/label_2 找真值
+只去 results/<你的实验名>/data 找预测结果
+
+./evaluate_object yolo
+
+### 3.3.1. table
+
+| Methods                   | Easy  | Moderate  | Hard  |
+| :------------------------ | :---: | :-------: | :---: |
+| **MonoLoco (ICCV'19)**    | 61.82 | 54.72     | 49.06 |
+| **MonOri (TNNLS'25)**     | 71.74 | 62.65     | 53.72 |
+| **yolo26x + yolo26x-pose**| 69.35 | 61.09     | 53.64 |
