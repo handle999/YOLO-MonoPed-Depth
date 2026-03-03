@@ -2,23 +2,26 @@
 backend/
 ├── api/
 │   ├── __init__.py
-│   └── schemas.py            # [输出] 结果图和日志
-├── config/
-<!-- │   └── camera_params.yaml    # [配置文件] 存放相机经纬度、安装高度、内参等 -->
+│   ├── schemas.py            # [输出] 原有接口
+│   └── schemas_sys.py        # [输出] 调度系统接口
 ├── data/
-│   ├── images/               # [输入] 待检测图片
-│   └── output/               # [输出] 结果图和日志
+│   ├── images/               # [输入] 待检测图片，测试用
+│   └── kitti/                # [输入] KITTI 3D 数据集
 ├── models/
-│   └── Detectino
-|       └── yolov8n.pt        # [模型] 官方权重
+│   └── Detect
+|       └── yolo11l.pt        # [模型] 官方权重
+│   └── Pose
+|       └── yolo11l-pose.pt   # [模型] 官方权重
 ├── src/
 │   ├── __init__.py
-│   ├── detector.py           # [核心] 封装 YOLOv8 推理逻辑
+│   ├── detector.py           # [核心] 封装 YOLO 推理逻辑
 │   ├── geolocalizer.py       # [核心] 封装 像素坐标 -> 地理坐标 的数学公式
-│   └── visualizer.py         # [辅助] 画图工具
+│   ├── pose_utils.py         # [核心] 人体生物力学智能骨架测距策略
+│   ├── visualizer.py         # [辅助] 画图工具
 │   └── utils     .py         # [辅助] base64图像读取、距离转gps
 ├── infer_loc.py              # [入口] 模型效果验证
-├── main.py                   # [入口] 主程序，串联整个流程
+├── main.py                   # [入口] 主程序，串联整个流程8110 原有实现
+├── main_sys.py               # [入口] Flask Web 服务，对外提供 RESTful API，8111 调度系统
 └── requirements.txt          # 依赖包
 ```
 
@@ -52,21 +55,33 @@ Merge Results (BBox + Keypoints)
 # if want to use >= yolo26 (i.e., ultralytics>=8.4.0), use python>=3.10
 conda create -n yolo python=3.10 -y
 conda activate yolo
+
 # warning: torch 2.1 and 2.2 match numpy 1.x, while current numpy 2.x will be auto installed
 # so first lock numpy=1.26.4
 conda install numpy=1.26.4 -y
 conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+
 # Install the ultralytics package using conda
-# if python=3.8, installs 8.3.43, while not support yolo26
-# python=3.10 installs 8.4.14 in 2026/2/26
+# if python=3.8, installs 8.3.43, while not support yolo26; python=3.10 installs 8.4.14 in 2026/2/26
 conda install -c conda-forge ultralytics
+
 # if pkg for .exe, but not used
 # pip install pyinstaller
+
 # pkgs for geo-utils and vis
 conda install geopy tqdm
-# pkgs for FastAPI and Vue3: conda install pydantic fastapi uvicorn python-multipart
-# suggest to use flask
+
+# suggest to use flask. pkgs for FastAPI and Vue3: conda install pydantic fastapi uvicorn python-multipart
 conda install pydantic flask flask-cors python-multipart
+```
+
+```shell
+# export env
+
+conda env export --no-builds > env.yml
+
+conda env export --from-history > env-clean.yml
+
 ```
 
 # 2. predict

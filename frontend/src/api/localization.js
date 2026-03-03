@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const API_BASE_URL = 'http://127.0.0.1:8110'; 
+
 export const analyzeLocalizationAPI = async (cameraConfig, modelConfig, imageBase64) => {
   // 提取纯 Base64 字符串
   const cleanBase64 = imageBase64.includes(',') 
@@ -31,6 +33,6 @@ export const analyzeLocalizationAPI = async (cameraConfig, modelConfig, imageBas
     targets: [] 
   };
 
-  const response = await axios.post('http://127.0.0.1:8001/api/v1/perception/suspect_localization', payload);
+  const response = await axios.post(`${API_BASE_URL}/api/v1/perception/suspect_localization`, payload);
   return response.data;
 };

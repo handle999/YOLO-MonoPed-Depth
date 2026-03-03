@@ -157,4 +157,4 @@ def analyze():
 
 if __name__ == "__main__":
     # [修改] 使用 Flask 的启动方式
-    app.run(host="0.0.0.0", port=8001, debug=True)
+    app.run(host="0.0.0.0", port=8110, debug=True)

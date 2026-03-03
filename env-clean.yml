@@ -1,0 +1,19 @@
+name: yolo
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy=1.26.4
+  - pytorch-cuda=11.8
+  - pytorch==2.1.0
+  - torchaudio==2.1.0
+  - torchvision==0.16.0
+  - ultralytics
+  - geopy
+  - tqdm
+  - fastapi
+  - pydantic
+  - python-multipart
+  - uvicorn
+  - flask
+  - flask-cors

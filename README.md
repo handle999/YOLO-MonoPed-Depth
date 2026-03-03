@@ -61,7 +61,8 @@
 root/                           # [根项目目录]
 ├── backend/                    # [后端] 基于 Flask + Ultralytics (已重构)
 │   ├── api/                    
-│   │   └── schemas.py          # Pydantic 数据验证与响应模型
+│   │   ├── schemas.py          # Pydantic 数据验证与响应模型
+│   │   └── ...
 │   ├── data/                   # 数据存放区与评估结果
 │   │   └── KITTI.md            # KITTI 数据集评估说明
 │   ├── models/                 # 模型权重池
@@ -76,13 +77,21 @@ root/                           # [根项目目录]
 │   ├── infer_loc.py            # 单图/视频推理演示脚本 (CLI)
 │   ├── kitti_infer.py          # KITTI 数据集批量推理工作流
 │   ├── kitti_eval.py           # KITTI 评测脚本 (AP_R40, ALE/ALP 误差分布统计)
-│   ├── main.py                 # [入口] Flask Web 服务，对外提供 RESTful API
+│   ├── main.py                 # [入口] Flask Web 服务，对外提供 RESTful API，8110 原有实现
+│   ├── main_sys.py             # [入口] Flask Web 服务，对外提供 RESTful API，8111 调度系统
 │   └── requirements.txt        # Python 依赖清单
 │
 └── frontend/                   # [前端] Vue 3 + Vite
     ├── src/
     │   ├── api/                # API 接口统一管理
+    │   │   ├── localization.js # 8001 端口：原生系统 API 请求封装
+    │   │   └── ...
     │   ├── components/         # 模块化 Vue 组件
+    │   │   ├── ImageModal.vue  # 悬浮组件：全屏大图查看与下载
+    │   │   └── ...
+    │   ├── views/              # 页面级路由组件
+    │   │   ├── NativeView.vue  # 系统原本视图页面 (包含模型选择、图像上传与地图渲染)
+    │   │   └── ...    
     │   ├── App.vue             # 极简版页面入口
     │   ├── style.css           # 统一 UI 样式库
     │   └── main.js             

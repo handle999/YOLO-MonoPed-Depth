@@ -1,19 +1,26 @@
 # 1. Run
 
+3个shell，分别执行前后端
+
+1. 后端 1（端口8001，一般不会冲突，可更改，但是可能可读性比较烂），环境配置参见 [Backend](backend/RUN-python.md)。
+1. 后端 2（端口8002，一般不会冲突），环境配置一致。
+1. 前端（端口5173，vue通用接口），环境配置参见 [Frontend](frontend/RUN-vue.md)
+
 ```shell
-# 两个shell，分别执行前后端
-## （1）后端（端口8001，一般不会冲突，可更改，但是可能可读性比较烂）
-## 环境配置参见 backend/RUN-python.md
+# 后端 1
 cd backend
 python main.py
 
-## （2）前端（端口5173，vue通用接口）
-## 环境配置参见 frontend/RUN-vue.md
+# 后端 2
+cd backend
+python main_sys.py
+
+# 前端
 cd frontend
 npm run dev
 ```
 
-# 2. api
+# 2. api - lab - 8110
 
 ## 2.1. request
 
@@ -82,7 +89,7 @@ npm run dev
 
 ## 2.2. response
 
-```shell
+```json
 // 返回数据 (Response Body Example):
 {
     "code": 200,
@@ -113,5 +120,105 @@ npm run dev
             },
         ] // list，多个results.item
     }
+}
+```
+
+# 3. api - sys - 8111
+
+## 3.1. loc(人员定位接口)
+
+接口说明：指挥调度管理系统将图像与检测框传给 AI，AI 负责算出每个目标（框）对应的经纬度并返回。
+
+接口路径：/xjzhdd/alarmEvent/pull/local
+
+### 3.1.1. request
+
+```json
+// 请求参数 (Request Body Example):
+{
+    "currentTime": "2026-02-04 15:39:48", // [必填] datetime/string，当前时间 
+    "longitude": 80.234,                  // [必填] decimal(11,8)，相机位置经度 
+    "latitude": 20.234,                   // [必填] decimal(11,8)，相机位置纬度 
+    "height": 6.3244432,                  // [必填] decimal(11,8)，相机安装高度 
+    "pitch": 0.534,                       // [必填] decimal(11,8)，仰俯角（点头）（⚠️ 弧度单位） 
+    "yaw": 0.134,                         // [必填] decimal(11,8)，偏航角（摇头）（⚠️ 弧度单位） 
+    "roll": 0.342,                        // [必填] decimal(11,8)，滚转角（⚠️ 弧度单位） 
+    "f": 0.234,                           // [必填] decimal(11,8)，焦距 
+    "imageUrl": "http://172.31.105.25:2122/buckle/test.png", // [必填] string，要计算深度信息的图片网络地址 
+    
+    "objectList": [                       // [必填] jsonArray，检测到的人员信息列表 
+        {
+            "objectCategory": "1",        // [必填] string，对象类别（1-人员，2-车辆） 
+            "objectCode": "0000000000101",// [必填] string，对象编号，程序自增编号 
+            "bndbox": {                   // [必填] dict，检测到的人员位置和尺寸（⚠️ 必须是 0~1 的归一化值） 
+                "x": 0.114,               // [必填] decimal(11,8)，图像坐标x（归一化之后，通常为框中心点或左上角，需双方约定） 
+                "y": 0.249,               // [必填] decimal(11,8)，图像坐标y（归一化之后） 
+                "width": 0.135,           // [必填] decimal(11,8)，目标尺寸width（归一化之后） 
+                "height": 0.224           // [必填] decimal(11,8)，目标尺寸height（归一化之后） 
+            }
+        }
+    ]
+}
+```
+
+### 3.1.2. response
+
+```json
+// 返回数据 (Response Body Example):
+{
+    "code": 200,                          // [必填] int/string，错误码，非 200 取值表示失败 
+    "msg": "success",                     // [必填] string，成功或异常信息 
+    "imageUrl": "http://172.31.105.25:2122/buckle/test.png", // [必填] string，原样返回图片地址 
+    "currentTime": "2026-02-04 15:39:48", // [必填] datetime/string，当前时间 
+    
+    "objectList": [                       // [必填] jsonArray，计算出的目标地理坐标列表 
+        {
+            "objectCode": "0000000000101",// [必填] string，对象编号 (原样透传请求里的编号) 
+            "objectCategory": "1",        // [必填] string，对象类别（1-人员，2-车辆） 
+            "longitude": "80.91007300",   // [必填] decimal(11,8)/string，AI 推算出的检测目标经度 
+            "latitude": "43.32430300"     // [必填] decimal(11,8)/string，AI 推算出的检测目标纬度 
+        }
+    ]
+}
+```
+
+## 3.2. det(人员检测接口)
+
+接口说明：指挥调度系统仅传入图像地址，AI 负责在图像上寻找目标，并返回带编号的归一化检测框位置。
+
+接口路径：/xjzhdd/alarmEvent/pull/detection
+
+### 3.2.1. request
+
+```json
+// 请求参数 (Request Body Example):
+{
+    "currentTime": "2026-02-04 15:39:48", // [必填] datetime/string，当前时间 
+    "imageUrl": "http://172.31.105.25:2122/buckle/test.png"  // [必填] string，要得到检测框的图片网络地址 
+}
+```
+
+### 3.2.2. response
+
+```json
+// 返回数据 (Response Body Example):
+{
+    "code": 200,                          // [必填] int/string，错误码，非 200 取值表示失败 
+    "msg": "success",                     // [必填] string，成功或异常信息 
+    "currentTime": "2026-02-04 15:39:48", // [必填] datetime/string，当前时间 
+    "imageUrl": "http://172.31.105.25:2122/buckle/test.png", // [必填] string，要得到检测框的图片 
+    
+    "objectList": [                       // [必填] jsonArray，图像中检测出的目标列表 
+        {
+            "objectCode": "0000000000101",// [必填] string，AI 为该目标生成的程序自增编号 
+            "objectCategory": "1",        // [必填] string，对象类别（1-人员，2-车辆） 
+            "bndbox": {                   // [必填] dict，检测到的人员的位置和尺寸（⚠️ 已经过归一化处理） 
+                "x": 0.114,               // [必填] decimal(11,8)，图像坐标x（归一化之后，0~1） 
+                "y": 0.249,               // [必填] decimal(11,8)，图像坐标y（归一化之后，0~1） 
+                "width": 0.135,           // [必填] decimal(11,8)，目标尺寸width（归一化之后，0~1） 
+                "height": 0.224           // [必填] decimal(11,8)，目标尺寸height（归一化之后，0~1） 
+            }
+        }
+    ]
 }
 ```

@@ -1,26 +1,36 @@
 ```text
 frontend/                       # [前端] Vue 3 + Vite 项目
-├── public/                     # 静态资源 (如图标)
+├── public/                     # 静态资源 (如图标 favicon 等)
 ├── src/
-│   ├── api/                    # [新增] 网络请求层
-│   │   └── localization.js     # 封装统一的 Axios 请求逻辑，解耦业务
-│   ├── assets/                 # 内部静态资产
-│   ├── components/             # [新增] 拆分后的独立 UI 组件库
-│   │   ├── ConfigForm.vue      # 左侧侧边栏：参数配置表单与图像上传
-│   │   ├── ResultGallery.vue   # 左侧侧边栏：AI检测/骨架/雷达视图展示
-│   │   ├── MapDisplay.vue      # 右侧主视图：Leaflet 地图渲染与目标标记
-│   │   └── ImageModal.vue      # 悬浮组件：全屏大图查看与下载
-│   ├── App.vue                 # [核心] 主页面容器 (仅负责状态管理与组件调度)
-│   ├── main.js                 # 核心入口文件 (挂载 Vue 实例与 Leaflet 样式)
-│   └── style.css               # [新增] 科技暗黑风主题全局样式
-├── index.html                  # HTML 模板
-├── package.json                # 前端依赖配置 (axios, leaflet 等)
-└── vite.config.js              # Vite 构建配置
+│   ├── api/                    # [网络请求层]
+│   │   ├── localization.js     # 8001 端口：原生系统 API 请求封装
+│   │   └── sys_api.js          # 8002 端口：指挥调度系统 (Sys) 接口测试封装
+│   ├── assets/                 # 内部静态资产 (如本地图片、基础样式文件等)
+│   ├── components/             # [UI 组件库] 彻底解耦的原子化/模块化组件
+│   │   ├── HelloWorld.vue      # (Vue 默认示例组件，可删除)
+│   │   ├── ImageModal.vue      # 悬浮组件：全屏大图查看与下载
+│   │   ├── MapDisplay.vue      # 右侧主视图：Leaflet 地图渲染与目标多边形标记
+│   │   ├── ModelSelect.vue     # 表单组件：YOLO 目标检测与姿态估计模型下拉选择
+│   │   ├── NativeCameraInput.vue # 表单组件：8001 原生系统的复杂相机参数(深度嵌套)
+│   │   ├── ResultGallery.vue   # 左侧展示卡片：AI检测/骨架/雷达视图展示
+│   │   └── SysCameraInput.vue  # 表单组件：8002 Sys 系统的扁平化相机参数
+│   ├── views/                  # [视图层] 页面级路由组件
+│   │   ├── NativeView.vue      # 系统原本视图页面 (包含模型选择、图像上传与地图渲染)
+│   │   └── SysView.vue         # 调度接口测试沙盒 (测试指挥调度系统 /pull/detection 和 /pull/local)
+│   ├── App.vue                 # [核心骨架] 主入口外壳，仅负责 Header 渲染和 Tabs 视图切换
+│   ├── main.js                 # 核心入口文件 (挂载 Vue 实例与 Leaflet 全局样式)
+│   └── style.css               # 主题与全局样式定义
+├── index.html                  # HTML 基础模板
+├── package.json                # 前端依赖配置 (vue, axios, vue-leaflet 等)
+└── vite.config.js              # Vite 构建与代理配置
 ```
 
 # 1. env
 
 ## 1.1. check
+
+如果没有安装 Node，Windows 建议去 [官网](https://nodejs.org) 下载 LTS 版本，注意勾选 `Add to PATH`
+
 ```shell
 # 1. 检查 Node.js 和 npm
 node -v
@@ -66,4 +76,3 @@ npm run dev
 
 # 当然要先去后端把main运行起来
 ```
-

@@ -43,7 +43,8 @@ We introduce a `PoseConverter` module with a **Cascade Strategy** to find the mo
 root/                             # [Root project directory]
 ├── backend/                      # [Backend] Based on Flask + Ultralytics (Refactored)
 │   ├── api/                      
-│   │   └── schemas.py            # Pydantic data validation and response models
+│   │   ├── schemas.py            # Pydantic data validation and response models
+│   │   └── ...
 │   ├── data/                     # Data storage area and evaluation results
 │   │   └── KITTI.md              # Detailed description of KITTI dataset evaluation
 │   ├── models/                   # Model weights pool
@@ -58,20 +59,23 @@ root/                             # [Root project directory]
 │   ├── infer_loc.py              # Single image/video inference demo script (CLI)
 │   ├── kitti_infer.py            # KITTI dataset batch inference workflow (includes Warmup & timing)
 │   ├── kitti_eval.py             # KITTI evaluation script (AP_R40, ALE/ALP error distribution statistics)
-│   ├── main.py                   # [Entry] Flask Web service, providing RESTful APIs
+│   ├── main.py                   # [Entry] Flask Web service, providing RESTful APIs, port 8110
+│   ├── main_sys.py               # [Entry] Flask Web service, providing RESTful APIs, port 8111
 │   └── requirements.txt          # Python dependencies list
 │
 └── frontend/                     # [Frontend] Vue 3 + Vite
     ├── public/                   # Static assets (e.g., icons, favicon)
     ├── src/
     │   ├── api/                  # Unified API request management
-    │   │   └── localization.js   # Encapsulated Axios request logic to decouple business logic
+    │   │   ├── localization.js   # Port 8001: Encapsulated Axios request logic to decouple business logic
+    │   │   └── ...
     │   ├── assets/               # Internal static assets
     │   ├── components/           # Modularized Vue components library
-    │   │   ├── ConfigForm.vue    # Left sidebar: parameter config form & image upload
-    │   │   ├── ResultGallery.vue # Left sidebar: AI detection/skeleton/radar views display
-    │   │   ├── MapDisplay.vue    # Right main view: Leaflet map rendering & target markers
-    │   │   └── ImageModal.vue    # Floating component: fullscreen image viewer & downloader
+    │   │   ├── ImageModal.vue    # Floating component: fullscreen image viewer & downloader
+    │   │   └── ...
+    │   ├── views/                # Page-level routing component
+    │   │   ├── NativeView.vue    # Original system view page (including model selection, image upload, and map rendering)
+    │   │   └── ...
     │   ├── App.vue               # [Core] Minimalist main page container (state management & component dispatch)
     │   ├── main.js               # Core entry file (mounts Vue instance & Leaflet styles)
     │   └── style.css             # Global unified UI style library (Dark tech theme)
