@@ -71,9 +71,9 @@ const modalImageName = ref('');
 const modelConfig = reactive({ detModel: 'yolo26l', poseModel: 'yolo26l-pose' });
 const cameraConfig = reactive({
   deviceId: "cam_001", terrain: "mount",
-  extrinsics: { lat: 22.54321, lng: 114.05755, alt: 15.0, height: 3.5, pitch: -15.0, yaw: 0.0, roll: 0.0 },
+  extrinsics: { lat: 22.87651234, lng: 114.05755012, alt: 15.0, height: 3.5, pitch: -15.0, yaw: 0.0, roll: 0.0 },
   resolution: { width: 1920, height: 1080 },
-  intrinsics: { focal_length: 6.0, sensor_width: 5.37 },
+  intrinsics: { focal_length: 4.0, sensor_width: 5.37 },
   distortion: { k1: -0.1, k2: 0.05, p1: 0, p2: 0, k3: 0 }
 });
 

@@ -1,13 +1,26 @@
 <template>
   <div class="map-container">
-    <l-map ref="mapRef" v-model:zoom="zoom" :center="center" :use-global-leaflet="false" :max-zoom="25">
-      <l-tile-layer url="http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}" layer-type="base" name="Google Hybrid" :max-native-zoom="20" :max-zoom="25"></l-tile-layer>
+    
+    <button class="focus-camera-btn" @click="focusOnCamera" title="回到相机所在位置">
+      🎯 聚焦
+    </button>
+
+    <l-map ref="mapRef" v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false" :max-zoom="25">
+      
+      <l-tile-layer 
+        url="https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}" 
+        layer-type="base" 
+        name="Google Hybrid" 
+        :max-native-zoom="18" 
+        :max-zoom="25">
+      </l-tile-layer>
+
       <l-control-scale position="bottomright" :metric="true" :imperial="false"></l-control-scale>
       <l-control position="bottomright">
         <div class="zoom-indicator"><div>Level: {{ zoom.toFixed(1) }}</div></div>
       </l-control>
 
-      <l-marker :lat-lng="[cameraConfig.extrinsics.lat, cameraConfig.extrinsics.lng]">
+      <l-marker :lat-lng="getCameraLatLng()">
         <l-tooltip :options="{ permanent: true, direction: 'top' }">📷 相机位置</l-tooltip>
       </l-marker>
 
@@ -36,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { LMap, LTileLayer, LMarker, LPolygon, LPopup, LIcon, LTooltip, LControlScale, LControl } from "@vue-leaflet/vue-leaflet";
 
 const props = defineProps({
@@ -44,16 +57,32 @@ const props = defineProps({
   apiResults: Array
 });
 
+// 动态提取经纬度的方法 (兼容 8110 嵌套格式 和 8111 扁平格式)
+const getCameraLatLng = () => {
+  if (!props.cameraConfig) return [0, 0];
+  const lat = props.cameraConfig.extrinsics ? props.cameraConfig.extrinsics.lat : props.cameraConfig.latitude;
+  const lng = props.cameraConfig.extrinsics ? props.cameraConfig.extrinsics.lng : props.cameraConfig.longitude;
+  return [lat, lng];
+};
+
 const mapRef = ref(null);
 const zoom = ref(18);
-const center = ref([22.54321, 114.05755]); // 初始默认中心
+
+// [修改] 初始中心点不再写死，而是动态读取传入的配置坐标
+const center = ref(getCameraLatLng()); 
+
+// [新增] 聚焦相机的方法
+const focusOnCamera = () => {
+  center.value = getCameraLatLng(); // 将地图中心设为相机坐标
+  zoom.value = 18;                  // 强制恢复默认的 18 缩放级别
+};
 
 const formatPolygon = (polyList) => polyList.map(p => [p.lat, p.lng]);
 
-// 暴露给父组件的方法
+// 暴露给父组件自适应所有框的方法
 const fitBounds = () => {
   if (!mapRef.value || props.apiResults.length === 0) return;
-  const points = [[props.cameraConfig.extrinsics.lat, props.cameraConfig.extrinsics.lng]];
+  const points = [getCameraLatLng()]; // 把相机坐标加进计算范围
   props.apiResults.forEach(t => {
     points.push([t.suspect_geo_location.lat, t.suspect_geo_location.lng]);
     t.suspect_region_polygon.forEach(p => points.push([p.lat, p.lng]));

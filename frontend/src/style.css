@@ -171,8 +171,37 @@ body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
+/* 悬浮按钮的样式 */
+.focus-camera-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000; /* 必须大于 Leaflet 的 400 层级才能悬浮在地图上方 */
+  background-color: var(--card-bg, #1e293b);
+  color: var(--text-main, #f8fafc);
+  border: 1px solid var(--border-color, #334155);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+  transition: all 0.2s ease;
+}
+
+.focus-camera-btn:hover {
+  background-color: var(--primary-color, #3b82f6);
+  border-color: var(--primary-color, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.6);
+}
+
+.focus-camera-btn:active {
+  transform: translateY(1px);
+}
+
 /* =========================================
-   SYS Test Panel Styles (8002接口测试面板专用)
+   SYS Test Panel Styles (8111接口测试面板专用)
    ========================================= */
 .sys-view .json-panel {
   background-color: #1e293b;

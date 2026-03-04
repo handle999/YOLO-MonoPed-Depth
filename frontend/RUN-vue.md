@@ -76,3 +76,23 @@ npm run dev
 
 # 当然要先去后端把main运行起来
 ```
+
+# 2. dev
+
+## 2.1. map
+
+```shell
+# 高德（火星坐标）
+## 高德矢量底图
+https://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}
+## 高德卫星影像
+https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}
+
+## 百度地图（百度坐标）
+#城市街道瓦片
+http://online{s}.map.bdimg.com/onlinelabel/?qt=tile&x={x}&y={y}&z={z}
+http://online{s}.map.bdimg.com/tile/?qt=vtile&x={x}&y={y}&z={z}&styles=pl&scaler=1&udt=
+##道路和标记
+http://online{s}.map.bdimg.com/tile/?qt=tile&x={x}&y={y}&z={z}&styles=sl
+##卫星影像
+https://maponline{s}.bdimg.com/starpic/?qt=satepc&u=x={x};y={y};z={z};v=009;type=sate&fm=46
