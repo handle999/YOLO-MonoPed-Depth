@@ -13,14 +13,20 @@ python main.py
 
 # 后端 2
 cd backend
+conda activate yolo
 python main_sys.py
 
 # 前端
 cd frontend
+conda activate yolo
 npm run dev
 ```
 
 # 2. api - lab - 8110
+
+接口端口：127.0.0.1:8110
+
+接口路径：api/v1/perception/suspect_localization
 
 ## 2.1. request
 

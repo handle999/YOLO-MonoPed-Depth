@@ -73,6 +73,10 @@ conda install geopy tqdm
 
 # suggest to use flask. pkgs for FastAPI and Vue3: conda install pydantic fastapi uvicorn python-multipart
 conda install pydantic flask flask-cors python-multipart
+
+# linux need mkl lower version, to support torch=2.1.0, while 2025.0.0 not suit
+# NO NEED ON WINDOWS!
+conda install "mkl<2024" "intel-openmp<2024" -y
 ```
 
 ```shell
