@@ -16,9 +16,9 @@ cd backend
 conda activate yolo
 python main_sys.py
 
-# 前端
+# 前端，需要使用node v22 + npm 10，当前系统默认node v18
 cd frontend
-conda activate yolo
+nvm use system
 npm run dev
 ```
 
