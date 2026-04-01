@@ -7,6 +7,14 @@
 
     <l-map ref="mapRef" v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false" :max-zoom="25">
       
+      <!-- zhdd系统，本地访问缓存作为底图？ -->
+      <!-- <l-tile-layer 
+        url = "http://192.168.0.105:9408/zhdd/mixed/{z}/{x}/{y}.jpg"
+        layer-type="base" 
+        name="Gaode Satellite" 
+        :max-native-zoom="20" 
+        :max-zoom="20">
+      </l-tile-layer> -->
       <l-tile-layer 
         url="https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}" 
         layer-type="base" 

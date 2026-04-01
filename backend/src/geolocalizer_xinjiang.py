@@ -57,14 +57,12 @@ class GeoLocalizer:
         
         # 4. 计算垂直视角偏差 (Alpha & Beta)
         # alpha_v: 垂直方向偏离光轴的角度
+        print("焦距f_mm: ", f_mm)
         print("v: ", v)
         print("img_h: ", img_h)
         print("cy: ", cy)
         print("fy: ", fy)
 
-        print("fy: ", fy)
-        print("v - cy: ", v - cy)
-        print("arctan (v - cy) / fy: ", (v - cy) / fy)
         alpha_v = math.atan((v - cy) / fy)
         print("alpha_v: ", alpha_v)
         # alpha_h: 水平方向偏离光轴的角度
@@ -81,65 +79,82 @@ class GeoLocalizer:
         # 注意: 这里的 pitch 也就是相机下俯角。通常 pitch 是负值。
         # 实际夹角 = abs(pitch) + alpha (如果脚底在图像下方)
         # 简化模型：视线与地面的夹角 phi
-        phi = -pitch + alpha_v # 假设 pitch 为负(向下), alpha 为正(图像下半部分)
-        print("pitch: ", pitch)
-        print("phi: ", phi)
+        phi = -pitch - alpha_v # 假设 pitch 为负(向下), alpha 为正(图像下半部分)
+
+        print("俯仰角一般是负的pitch: ", math.degrees(pitch))
+        print("与光轴y方向夹角alpha_v: ", math.degrees(alpha_v))
+        print("物体与水平方向夹角phi: ", math.degrees(phi))
         
         # if phi <= 0.05:
         #     print("---------------phi小于0.05-------------------------")
         #     return None # 视线向上，无法算地平面距离
-        print("phi degrees: ", math.degrees(phi))
-        if phi <= 0.05:
-            print("---------------phi小于0.05-------------------------")
-            print("phi: ", phi)
-            return None # 视线向上，无法算地平面距离
+
+        # 6. 统计法计算 "距离范围" (基于身高 1.6-1.8m)
+        h_pixel = y2 - y1
+        if h_pixel <= 0: h_pixel = 1
+
+        
+        
+        
+        
+        f_mm_for_far = 15 # (mm) 对于远距离人员用这个焦距
+        fx_for_far = f_mm_for_far * (img_w / sensor_w_mm)
+        fy_for_far =  fx_for_far
+
+        alpha_v_for_far = math.atan((v - cy) / fy_for_far)
+        phi_for_far = -pitch - alpha_v_for_far # 假设 pitch 为负(向下), alpha 为正(图像下半部分)
+
+
+        angle_h_rad_for_far = math.atan((u - cx) / fx_for_far)
+        angle_h_deg_for_far = math.degrees(angle_h_rad_for_far)
+
+        opt_dist_min_raw = (fy_for_far * 1.6) / h_pixel
+        opt_dist_max_raw = (fy_for_far * 1.8) / h_pixel
+        dist_min = opt_dist_min_raw
+        dist_max = opt_dist_max_raw
+
+        print("图片上下部分判断phi： ", phi)
+        print("图片上下部分判断phi： ",  math.degrees(phi))
+        # if phi >= -0.13:
+        if phi_for_far >= -0.39:
+            print("---------------phi大于0-------------------------")
+
+            # [修正1] 投影补偿: 人是竖直的，但相机是斜着看的。
+            # 人在成像平面上的投影高度会缩水，大约缩水比例为 cos(phi)
+            # 恢复真实投影高度: h_pixel_corrected = h_pixel / cos(phi)
+            # 或者直接在公式里乘: D = (f * H * cos(phi)) / h
+            # projection_factor = math.cos(phi)
+
+            # 原始光学估算 (Raw Optical Estimate)
+            # 这就是你算出 16m 左右的那个值，通常因为内参不准而偏差很大
+
+            
+            # [修正2] 几何锚定 (Geometric Anchoring) - 关键工程Trick
+            # 既然我们知道人肯定在 8.37m (由几何算出)，
+            # 那么 16m 这个值肯定是错的（说明 focal_length 参数给大了，或者图片被裁切过）。
+            # 我们只取 1.6-1.8m 这个"相对比例" (约12%的波动)，把它应用到 8.37m 上。
+            
+            # 计算光学估算的平均值
+            ground_distance = (opt_dist_min_raw + opt_dist_max_raw) / 2
+            print("与杆之间距离ground_distance: ", ground_distance)
+            target_bearing = (yaw + angle_h_deg_for_far) % 360
+            print("与光轴x方向夹角angle_h_deg_for_far: ", angle_h_deg_for_far)
+
+        else:
+            ground_distance = cam_h / math.tan(phi)
+            print("与杆之间距离ground_distance : ", ground_distance)
 
         # if phi <= 0.05:
         #     print("---------------phi小于0.05-------------------------")
         #     phi =
 
-        ground_distance = cam_h / math.tan(phi)
-        print("ground_distance : ", ground_distance)
-        # 6. 统计法计算 "距离范围" (基于身高 1.6-1.8m)
-        h_pixel = y2 - y1
-        if h_pixel <= 0: h_pixel = 1
         
-        # [修正1] 投影补偿: 人是竖直的，但相机是斜着看的。
-        # 人在成像平面上的投影高度会缩水，大约缩水比例为 cos(phi)
-        # 恢复真实投影高度: h_pixel_corrected = h_pixel / cos(phi)
-        # 或者直接在公式里乘: D = (f * H * cos(phi)) / h
-        projection_factor = math.cos(phi)
 
-        # 原始光学估算 (Raw Optical Estimate)
-        # 这就是你算出 16m 左右的那个值，通常因为内参不准而偏差很大
-        opt_dist_min_raw = (fy * 1.6 * projection_factor) / h_pixel
-        opt_dist_max_raw = (fy * 1.8 * projection_factor) / h_pixel
-        
-        # [修正2] 几何锚定 (Geometric Anchoring) - 关键工程Trick
-        # 既然我们知道人肯定在 8.37m (由几何算出)，
-        # 那么 16m 这个值肯定是错的（说明 focal_length 参数给大了，或者图片被裁切过）。
-        # 我们只取 1.6-1.8m 这个"相对比例" (约12%的波动)，把它应用到 8.37m 上。
-        
-        # 计算光学估算的平均值
-        opt_avg = (opt_dist_min_raw + opt_dist_max_raw) / 2
-        
-        # 计算偏差比例 (Scale Factor)
-        # 例如: 几何算出来8m, 光学算出来16m, 比例就是 0.5
-        if opt_avg > 0:
-            scale_factor = ground_distance / opt_avg
-        else:
-            scale_factor = 1.0
-            
-        # 强制将范围拉回到几何距离附近，但保留身高的不确定性比例
-        dist_min = opt_dist_min_raw * scale_factor
-        dist_max = opt_dist_max_raw * scale_factor
-        print("dist_min: ", dist_min)
-        print("dist_max: ", dist_max)
         # 7. 计算目标的绝对地理方位角 (Bearing)
-        target_bearing = (yaw + angle_h_deg) % 360
-        print("angle_h_deg: ", angle_h_deg)
+            target_bearing = (yaw + angle_h_deg) % 360
+            print("与光轴x方向夹角angle_h_deg: ", angle_h_deg)
         print("yaw: ", yaw)
-        print("target_bearing: ", target_bearing)
+        print("物体与正北方向夹角target_bearing: ", target_bearing)
 
         # 8. 推算经纬度
         camera_gps = Point(self.config['gps']['lat'], self.config['gps']['lng'])
@@ -264,3 +279,8 @@ class GeoLocalizer:
             "keypoints": keypoints,                 # 返回关键点数据，方便前端展示或调试
             "mode": mode                            # 返回测距模式，方便前端或日志展示
         }
+
+
+    
+
+    

@@ -73,6 +73,9 @@ conda install geopy tqdm
 
 # suggest to use flask. pkgs for FastAPI and Vue3: conda install pydantic fastapi uvicorn python-multipart
 conda install pydantic flask flask-cors python-multipart
+
+# zhdd add 0331
+conda install shapely pyproj -c conda-forge
 ```
 
 ```shell

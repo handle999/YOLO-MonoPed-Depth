@@ -61,13 +61,13 @@ const detectionObjects = ref([]); // 保存接口1拿到的框，给接口2用
 // [新增] 用于绑定表单输入的 8111 接口专用的响应式配置
 // 这里的默认值直接取自你提供的 Word 文档示例
 const sysConfig = reactive({
-  longitude: 80.23456789,
-  latitude: 20.23456789,
-  height: 6.30,
-  pitch: -0.012,
-  yaw: 0.0,
-  roll: 0.0,
-  f: 4.0
+  longitude: 80.23459876,
+  latitude: 20.23458267,
+  height: 6.3244432,
+  pitch: -0.01,
+  yaw: 0,
+  roll: 0,
+  f: 0.234
 });
 
 const runDetection = async () => {

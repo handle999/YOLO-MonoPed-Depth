@@ -1,6 +1,6 @@
 # backend/api/schemas.py
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 
 # --- Request ---
 class GpsInfo(BaseModel):
@@ -46,6 +46,9 @@ class LocalizationRequest(BaseModel):
     camera_info: CameraInfo
     image_data: ImageData
     targets: List[Target]
+    #新增围栏经纬度
+    #fence_coords: Optional[List[Tuple[float, float]]] = FENCE_COORDS = [(40.049478, 116.273055),(40.050859, 116.280843)]
+
 
 # --- Response ---
 class GeoPoint(BaseModel):
@@ -57,6 +60,8 @@ class CompDetails(BaseModel):
     calculated_depth: float
     straight_distance: float
     bearing_angle: float
+    #人员距离围栏的距离
+    distance_to_fence: Optional[float] = Field(default=None,description="人员距离围栏的距离")
 
 class SuspectResult(BaseModel):
     target_id: str

@@ -3,7 +3,6 @@ from .detector import PersonDetector
 
 # 从当前包 (.) 的 geolocalizer 模块导入 GeoLocalizer 类
 from .geolocalizer import GeoLocalizer
-
 from .visualizer import Visualizer
 
 # (可选) 定义版本号

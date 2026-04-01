@@ -17,7 +17,7 @@ from api.schemas_sys import (
 )
 
 app = Flask(__name__)
-# [必须新增] 允许前端跨域访问 8002 端口
+# [必须新增] 允许前端跨域访问 8111 端口
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # 为指挥系统专门初始化一个全局的检测器 (使用最优模型)
@@ -40,6 +40,7 @@ def download_image(url: str):
 # ---------------------------------------------------------
 # 接口一：人员定位 (指挥系统传框，本地算坐标)
 # ---------------------------------------------------------
+# TODO 基于这个接口外面再包一个接口，入参是：【图片地址，摄像头ip，人员框定位】，输出是人员的经纬度，距离。（摄像头的其他信息通过csv文件查），post请求
 @app.route("/xjzhdd/alarmEvent/pull/local", methods=["POST"])
 def pull_local():
     try:
@@ -100,6 +101,20 @@ def pull_local():
         return jsonify({"code": 500, "msg": f"内部计算错误: {str(e)}"}), 200 # 业务约定可能出错也回 200 伴随 code=500
 
 
+# TODO 基于这个接口外面再包一个接口，入参是：【图片地址，摄像头ip，人员框定位】，输出是人员的经纬度，距离。（摄像头的其他信息通过csv文件查），post请求
+# @app.route("/xjzhdd/alarmEvent/pull/disbyip", methods=["POST"])
+# def distancebyip():
+#     try:
+#         req_data = request.get_json()
+#         req = LocalRequest(**req_data)
+#     except ValidationError as e:
+#         return jsonify({"code": 400, "msg": f"参数校验失败: {str(e.errors())}"}), 400
+#
+#     try:
+#         req.imageUrl
+#         req.ip
+#         req.box
+
 # ---------------------------------------------------------
 # 接口二：人员检测 (指挥系统传图，本地算框)
 # ---------------------------------------------------------
@@ -149,5 +164,5 @@ def pull_detection():
 
 
 if __name__ == "__main__":
-    # 使用 8002 端口专门为指挥系统提供服务
+    # 使用 8111 端口专门为指挥系统提供服务
     app.run(host="0.0.0.0", port=8111, debug=True)
