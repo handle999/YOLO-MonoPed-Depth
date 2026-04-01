@@ -76,6 +76,10 @@ conda install pydantic flask flask-cors python-multipart
 
 # zhdd add 0331
 conda install shapely pyproj -c conda-forge
+
+# linux need mkl lower version, to support torch=2.1.0, while 2025.0.0 not suit
+# NO NEED ON WINDOWS!
+conda install "mkl<2024" "intel-openmp<2024" -y
 ```
 
 ```shell

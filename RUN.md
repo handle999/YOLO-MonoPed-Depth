@@ -2,8 +2,8 @@
 
 3个shell，分别执行前后端
 
-1. 后端 1（端口8001，一般不会冲突，可更改，但是可能可读性比较烂），环境配置参见 [Backend](backend/RUN-python.md)。
-1. 后端 2（端口8002，一般不会冲突），环境配置一致。
+1. 后端 1（端口8110，一般不会冲突，可更改，但是可能可读性比较烂），环境配置参见 [Backend](backend/RUN-python.md)。
+1. 后端 2（端口8111，一般不会冲突），环境配置一致。
 1. 前端（端口5173，vue通用接口），环境配置参见 [Frontend](frontend/RUN-vue.md)
 
 ```shell
@@ -13,14 +13,20 @@ python main.py
 
 # 后端 2
 cd backend
+conda activate yolo
 python main_sys.py
 
-# 前端
+# 前端，需要使用node v22 + npm 10，当前系统默认node v18
 cd frontend
+nvm use system
 npm run dev
 ```
 
 # 2. api - lab - 8110
+
+接口端口：127.0.0.1:8110
+
+接口路径：api/v1/perception/suspect_localization
 
 ## 2.1. request
 
