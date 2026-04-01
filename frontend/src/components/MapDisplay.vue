@@ -48,8 +48,18 @@
         </l-marker>
 
         <l-polygon 
+          v-if="target.suspect_region_polygon && target.suspect_region_polygon.length > 0"
           :lat-lngs="formatPolygon(target.suspect_region_polygon)" 
           color="#00ff00" :weight="2" fill-color="#00ff00" :fill-opacity="0.3" 
+        />
+
+        <l-polyline
+          v-if="target.fence_line && target.fence_line.length > 0"
+          :lat-lngs="target.fence_line"
+          color="#ef4444"
+          :weight="4"
+          dash-array="10, 8"
+          :opacity="0.9"
         />
       </template>
     </l-map>
@@ -58,7 +68,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { LMap, LTileLayer, LMarker, LPolygon, LPopup, LIcon, LTooltip, LControlScale, LControl } from "@vue-leaflet/vue-leaflet";
+import { LMap, LTileLayer, LMarker, LPolygon, LPolyline, LPopup, LIcon, LTooltip, LControlScale, LControl } from "@vue-leaflet/vue-leaflet";
 
 const props = defineProps({
   cameraConfig: Object,
@@ -90,11 +100,26 @@ const formatPolygon = (polyList) => polyList.map(p => [p.lat, p.lng]);
 // 暴露给父组件自适应所有框的方法
 const fitBounds = () => {
   if (!mapRef.value || props.apiResults.length === 0) return;
+
   const points = [getCameraLatLng()]; // 把相机坐标加进计算范围
+
   props.apiResults.forEach(t => {
-    points.push([t.suspect_geo_location.lat, t.suspect_geo_location.lng]);
-    t.suspect_region_polygon.forEach(p => points.push([p.lat, p.lng]));
+    // 1. 加入人的坐标
+    if (t.suspect_geo_location) {
+      points.push([t.suspect_geo_location.lat, t.suspect_geo_location.lng]);
+    }
+    // 2. 加入 8110 的多边形坐标
+    if (t.suspect_region_polygon) {
+      t.suspect_region_polygon.forEach(p => points.push([p.lat, p.lng]));
+    }
+    // 3. [新增] 加入 8112 的电子围栏坐标，确保墙体显示在视野内
+    if (t.fence_line) {
+      t.fence_line.forEach(p => points.push([p[0], p[1]]));
+    }
   });
+  // 如果点数不足以构成边框，跳过
+  if (points.length < 2) return;
+  
   mapRef.value.leafletObject.fitBounds(points, { padding: [50, 50], maxZoom: 21 });
 };
 

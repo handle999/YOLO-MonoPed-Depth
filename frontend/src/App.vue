@@ -17,13 +17,20 @@
           >
             🔌 调度接口测试 (8111)
           </button>
+          <button 
+            :class="['tab-btn', { active: currentTab === 'sysv2' }]"
+            @click="currentTab = 'sysv2'"
+          >
+            🎯 电子围栏测距 (8112)
+          </button>
         </div>
       </div>
     </header>
 
     <KeepAlive>
       <NativeView v-if="currentTab === 'native'" />
-      <SysView v-else />
+      <SysView v-else-if="currentTab === 'sys'" />
+      <Sysv2View v-else />
     </KeepAlive>
   </div>
 </template>
@@ -32,7 +39,8 @@
 import { ref } from 'vue';
 import NativeView from './views/NativeView.vue';
 import SysView from './views/SysView.vue';
+import Sysv2View from './views/Sysv2View.vue';
 
-// 默认显示 8111 视图
-const currentTab = ref('sys'); 
+// 默认显示 8112 视图
+const currentTab = ref('sysv2'); 
 </script>

@@ -10,7 +10,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS  # 引入跨域组件
 from pydantic import ValidationError
 from shapely.geometry import Point, LineString
-from pyproj import Transformer
+from pyproj import CRS, Transformer
 
 # 引入您的底层算法库
 from src.detector import PersonDetector
@@ -120,50 +120,54 @@ def parse_line_to_fence_coords(line_str):
                 pass
     return fence_coords if fence_coords else None
 
-# def get_distance_professional(person_lat, person_lon, fence_coords):
-#     """计算人员经纬度到围栏轨迹的最短距离 (单位: 米)"""
-#     if not fence_coords:
-#         return None
-
-#     p_lat = float(person_lat)
-#     p_lon = float(person_lon)
-    
-    
-#     # transformer_GCJ_WGS = Transformer.from_crs("epsg:4490", "epsg:4326", always_xy=True)
-#     # transformer_WGS_3857 = Transformer.from_crs("epsg:4326", "epsg:3857", always_xy=True)
-#     transformer_GCJ_3857 = Transformer.from_crs("epsg:4326", "epsg:3857", always_xy=True)
-#     # px_WGS, py_WGS = transformer_GCJ_WGS.transform(p_lon, p_lat)
-#     # px, py = transformer_WGS_3857.transform(px_WGS, py_WGS)
-#     px, py = transformer_GCJ_3857.transform(p_lon, p_lat)
-#     person_pt = Point(px, py)
-
-#     # 转换围栏坐标
-#     # fence_pts_ = [transformer_GCJ_WGS.transform(lon, lat) for  lon,lat in fence_coords]
-#     # fence_pts = [transformer_WGS_3857.transform(lon, lat) for lon,lat in fence_pts_]
-#     fence_pts = [transformer_GCJ_3857.transform(lon, lat) for lon,lat in fence_coords]
-#     fence_line = LineString(fence_pts)
-    
-#     return fence_line.distance(person_pt)
 
 def get_distance_professional(person_lat, person_lon, fence_coords):
     """计算人员经纬度到围栏轨迹的最短距离 (单位: 米)"""
-    if not fence_coords:
+    # [注意] 这里不能转换为4326，因为shapely的distance是欧式距离，不是球面
+    # 同时也不能用3857，会在不同纬度有拉伸，比如北京的40，会大概1.3倍
+    # if not fence_coords:
+    #     return None
+    # p_lat = float(person_lat)
+    # p_lon = float(person_lon)
+    # transformer = Transformer.from_crs("epsg:4490", "epsg:3857", always_xy=True)
+    # px, py = transformer.transform(p_lon, p_lat)
+    # person_pt = Point(px, py)
+    # # 转换围栏坐标
+    # fence_pts = [transformer.transform(float(lon), float(lat)) for lat, lon in fence_coords]
+    # fence_line = LineString(fence_pts)
+    # return fence_line.distance(person_pt)
+
+    # 采用局部正方位等距投影 (AEQD)，消除墨卡托拉伸误差
+    # 但是效率太低了，Gemini说，可以利用 EPSG:3857 全局单例保证性能，利用 Cosine 补偿保证物理精度
+    if not fence_coords or len(fence_coords) < 2:
         return None
 
     p_lat = float(person_lat)
     p_lon = float(person_lon)
     
-    
-    # transformer = Transformer.from_crs("epsg:4326", "epsg:3857", always_xy=True)
-    transformer = Transformer.from_crs("epsg:4490", "epsg:3857", always_xy=True)
-    px, py = transformer.transform(p_lon, p_lat)
+    # 1. 极速投影：使用全局单例将人员坐标转为 3857 墨卡托米
+    px, py = GLOBAL_TRANSFORMER.transform(p_lon, p_lat)
     person_pt = Point(px, py)
 
-    # 转换围栏坐标
-    fence_pts = [transformer.transform(float(lon), float(lat)) for lat, lon in fence_coords]
+    # 2. 极速投影：围栏坐标转换
+    fence_pts = []
+    for f_lat, f_lon in fence_coords:
+        fx, fy = GLOBAL_TRANSFORMER.transform(float(f_lon), float(f_lat))
+        fence_pts.append((fx, fy))
+        
     fence_line = LineString(fence_pts)
     
-    return fence_line.distance(person_pt)
+    # 3. 计算 3857 坐标系下的距离 (带有拉伸误差的假距离)
+    dist_3857 = fence_line.distance(person_pt)
+    
+    # 4. [核心魔法] 墨卡托反向缩放补偿
+    # 计算当前纬度下的拉伸补偿系数 (纬度转换为弧度后求余弦)
+    compensation_factor = math.cos(math.radians(p_lat))
+    
+    # 真实的物理距离 = 假距离 * 补偿系数
+    real_dist_meters = dist_3857 * compensation_factor
+    
+    return real_dist_meters
 
 
 # ==========================================
@@ -386,21 +390,34 @@ def process_ptz_localization(req_data):
     base_pitch = float(device_data['pitch'])
     base_focal = float(device_data.get('focal_length_mm', 6.0))
 
+    # [核心修复] 动态参数获取：前端传参优先级 > 外部接口
+    # ==========================================
+    realtime_yaw = req_data.get("realtime_yaw")
+    realtime_pitch = req_data.get("realtime_pitch")
+    realtime_focal = req_data.get("realtime_focal")
+
     # 4. 调用外部/子接口获取当前真实的 PTZ 瞬时参数
     # (注意：因为当前是单机测试，Flask 默认开多线程才能自己请求自己。生产环境这会是另一个微服务地址)
-    ptz_api_url = f"http://127.0.0.1:8112/xjzhdd/alarmEvent/sub?ip={ip}"
-    try:
-        resp = requests.get(ptz_api_url, timeout=3)
-        resp.raise_for_status()
-        ptz_res = resp.json().get("data", {})
-        
-        # 解析 P (水平角), T (俯仰角), Z (变焦倍数)
-        current_pan = float(ptz_res.get("pan", 0.0))
-        current_tilt = float(ptz_res.get("tilt", 0.0))
-        current_zoom = float(ptz_res.get("zoom", 1.0))
-    except Exception as e:
-        print(f"获取 PTZ 参数失败: {e}")
-        return jsonify({"code": 500, "msg": f"无法获取球机实时 PTZ 参数: {e}"}), 500
+    # 如果前端在调试，传了这三个值，优先使用！
+    if realtime_yaw is not None and realtime_pitch is not None and realtime_focal is not None:
+        current_pan = float(realtime_yaw)
+        current_tilt = float(realtime_pitch)
+        current_zoom = float(realtime_focal)
+        print("[PTZ] 正在使用前端 UI 传入的调试参数进行测距计算...")
+    else:
+        # 否则，走生产环境流程，去调 /sub 接口
+        ptz_api_url = f"http://127.0.0.1:8112/xjzhdd/alarmEvent/sub?ip={ip}"
+        try:
+            resp = requests.get(ptz_api_url, timeout=3)
+            resp.raise_for_status()
+            ptz_res = resp.json().get("data", {})
+            current_pan = float(ptz_res.get("pan", 0.0))
+            current_tilt = float(ptz_res.get("tilt", 0.0))
+            current_zoom = float(ptz_res.get("zoom", 1.0))
+            print("[PTZ] 正在使用外部 /sub 接口获取的实时参数...")
+        except Exception as e:
+            print(f"获取 PTZ 参数失败: {e}")
+            return jsonify({"code": 500, "msg": f"无法获取球机实时 PTZ 参数: {e}"}), 500
 
     # 5. 将实时偏移量叠加到安装基准上
     final_yaw = (base_yaw + current_pan) % 360     # 水平偏航：基准方向 + 旋转度数 (取模保证在0-360)
@@ -547,12 +564,20 @@ def _execute_localization_core(cam_config, bnd, img_h, img_w, terrain_mode, imag
             distance_to_fence = round(dist, 5)
 
     print("与墙之间距离distance_to_fence: ", distance_to_fence)
+
+    # 加上 camera_lat 和 camera_lng
     result_data = {
         "dev_id": dev_id,
         "person_lat": person_lat,
         "person_lng": person_lng,
         "distance_to_fence": distance_to_fence,
-        "terrain_mode": terrain_mode
+        "terrain_mode": terrain_mode,
+        # 这两个只是为了前端展示，实际中不用。理论上不占太多带宽，如果感觉别扭，可以去掉
+        "camera_lat": cam_config['gps']['lat'],  # [新增] 真实相机纬度
+        "camera_lng": cam_config['gps']['lng'],  # [新增] 真实相机经度
+        # 下面两个也是为了前端展示
+        "distance_from_camera": loc_res.get('distance', 0), # [新增] 返回人离相机的直线距离
+        "fence_coords": fence_coords,          # [新增] 将围栏坐标原样返回给前端画线
     }
 
     return jsonify({"code": 200, "data": result_data}), 200
