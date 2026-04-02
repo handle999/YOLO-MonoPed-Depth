@@ -17,7 +17,7 @@ from api.schemas_sys import (
 )
 
 app = Flask(__name__)
-# [必须新增] 允许前端跨域访问 8111 端口
+# [必须新增] 允许前端跨域访问 8112 端口
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # 为指挥系统专门初始化一个全局的检测器 (使用最优模型)
@@ -164,5 +164,5 @@ def pull_detection():
 
 
 if __name__ == "__main__":
-    # 使用 8111 端口专门为指挥系统提供服务
-    app.run(host="0.0.0.0", port=8111, debug=True)
+    # 使用 8112 端口专门为指挥系统提供服务
+    app.run(host="0.0.0.0", port=8112, debug=True)

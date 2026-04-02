@@ -406,7 +406,7 @@ def process_ptz_localization(req_data):
         print("[PTZ] 正在使用前端 UI 传入的调试参数进行测距计算...")
     else:
         # 否则，走生产环境流程，去调 /sub 接口
-        ptz_api_url = f"http://127.0.0.1:8112/xjzhdd/alarmEvent/sub?ip={ip}"
+        ptz_api_url = f"http://127.0.0.1:8111/xjzhdd/alarmEvent/sub?ip={ip}"
         try:
             resp = requests.get(ptz_api_url, timeout=3)
             resp.raise_for_status()
@@ -584,4 +584,4 @@ def _execute_localization_core(cam_config, bnd, img_h, img_w, terrain_mode, imag
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8112, debug=True)
+    app.run(host="0.0.0.0", port=8111, debug=True)

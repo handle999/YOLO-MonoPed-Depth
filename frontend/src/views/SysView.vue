@@ -58,7 +58,7 @@ const loading = ref(false);
 const jsonOutput = ref('');
 const detectionObjects = ref([]); // 保存接口1拿到的框，给接口2用
 
-// [新增] 用于绑定表单输入的 8111 接口专用的响应式配置
+// [新增] 用于绑定表单输入的 8112 接口专用的响应式配置
 // 这里的默认值直接取自你提供的 Word 文档示例
 const sysConfig = reactive({
   longitude: 80.23459876,
@@ -73,7 +73,7 @@ const sysConfig = reactive({
 const runDetection = async () => {
   if (!testImageUrl.value) return alert("请输入图片URL");
   loading.value = true;
-  jsonOutput.value = "请求 /pull/detection 中...\n请确保 8111 端口的服务已启动。";
+  jsonOutput.value = "请求 /pull/detection 中...\n请确保 8112 端口的服务已启动。";
   
   try {
     const data = await fetchDetection(testImageUrl.value);

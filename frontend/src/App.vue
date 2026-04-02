@@ -11,17 +11,19 @@
           >
             🖥️ 系统原生视图 (8110)
           </button>
-          <button 
-            :class="['tab-btn', { active: currentTab === 'sys' }]"
-            @click="currentTab = 'sys'"
-          >
-            🔌 调度接口测试 (8111)
-          </button>
+          
           <button 
             :class="['tab-btn', { active: currentTab === 'sysv2' }]"
             @click="currentTab = 'sysv2'"
           >
-            🎯 电子围栏测距 (8112)
+            🎯 电子围栏测距 (8111)
+          </button>
+          
+          <button 
+            :class="['tab-btn', { active: currentTab === 'sys' }]"
+            @click="currentTab = 'sys'"
+          >
+            🔌 调度接口测试 (8112)
           </button>
         </div>
       </div>

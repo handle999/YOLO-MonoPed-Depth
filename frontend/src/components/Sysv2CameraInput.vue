@@ -1,6 +1,6 @@
 <template>
   <div class="card config-card">
-    <div class="card-header">⚙️ 围栏测距参数 (8112)</div>
+    <div class="card-header">⚙️ 围栏测距参数 (8111)</div>
     
     <span class="group-title">1. 设备与模式 (Device & Mode)</span>
     <div class="input-grid">

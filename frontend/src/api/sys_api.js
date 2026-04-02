@@ -1,7 +1,7 @@
 // frontend/src/api/sys_api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:8111'; 
+const API_BASE_URL = 'http://127.0.0.1:8112'; 
 
 // 接口二：人员检测
 export const fetchDetection = async (imageUrl) => {
