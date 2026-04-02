@@ -61,7 +61,8 @@
 
 <script setup>
 import { ref, reactive, computed, nextTick } from 'vue';
-import axios from 'axios';
+// [修改] 移除 axios，引入封装好的 API
+import { fetchFenceDistance } from '../api/sysv2_api.js';
 import Sysv2CameraInput from '../components/Sysv2CameraInput.vue';
 import MapDisplay from '../components/MapDisplay.vue';
 
@@ -152,30 +153,15 @@ const submitAnalysis = async () => {
   jsonOutput.value = "请求中...";
   apiResults.value = []; 
 
-  const payload = {
-    ip: sysv2Config.ip,
-    image_w: sysv2Config.image_w,
-    image_h: sysv2Config.image_h,
-    bnd: sysv2Config.bnd,
-    terrain_mode: sysv2Config.terrain_mode,
-    camera_type: sysv2Config.camera_type
-  };
-
-  if (sysv2Config.camera_type === 'ptz') {
-    payload.realtime_yaw = sysv2Config.realtime_yaw;
-    payload.realtime_pitch = sysv2Config.realtime_pitch;
-    payload.realtime_focal = sysv2Config.realtime_focal;
-  }
-
-  if (imageSourceType.value === 'upload' && currentImageBase64.value) {
-    payload.imageData = currentImageBase64.value;
-  } else if (imageSourceType.value === 'url' && imageUrl.value) {
-    // URL 模式如果后端以后支持的话可以扩展
-  }
-
   try {
-    const response = await axios.post('http://127.0.0.1:8112/xjzhdd/alarmEvent/pull/fence_distance', payload);
-    const resData = response.data;
+    // [修改] 直接调用 API 函数，把繁琐的装配逻辑交出去
+    const resData = await fetchFenceDistance(
+      sysv2Config, 
+      imageSourceType.value, 
+      currentImageBase64.value, 
+      imageUrl.value
+    );
+    
     jsonOutput.value = JSON.stringify(resData, null, 2);
     
     if (resData.code === 200 && resData.data) {
